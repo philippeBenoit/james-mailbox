@@ -4,3 +4,6 @@ target
 derby.log
 var
 log
+.classpath
+.project
+.settings
