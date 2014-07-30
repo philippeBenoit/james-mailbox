@@ -42,11 +42,11 @@ import com.datastax.driver.core.querybuilder.Select;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 
-    private static final int INITIAL_SIZE = 64;
-    private final Map<String, List<Subscription>> subscriptionsByUser;
+public class CassandraSubscriptionMapper extends NonTransactionalMapper implements SubscriptionMapper {
+    private Session session;
 
-    public CassandraSubscriptionMapper() {
-        subscriptionsByUser = new ConcurrentHashMap<String, List<Subscription>>(INITIAL_SIZE);
+    public CassandraSubscriptionMapper(Session session) {
+        this.session = session;
     }
 
     @Override
