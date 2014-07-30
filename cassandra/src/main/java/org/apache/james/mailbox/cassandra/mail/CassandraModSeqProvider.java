@@ -26,9 +26,6 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
 
 import java.util.UUID;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import org.apache.james.mailbox.MailboxSession;
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.store.mail.ModSeqProvider;
@@ -37,12 +34,10 @@ import org.apache.james.mailbox.store.mail.model.Mailbox;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
-@Singleton
 public class CassandraModSeqProvider implements ModSeqProvider<UUID> {
 
     private Session session;
 
-    @Inject
     public CassandraModSeqProvider(Session session) {
         this.session = session;
     }

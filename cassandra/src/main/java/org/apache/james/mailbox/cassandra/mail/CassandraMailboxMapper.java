@@ -54,7 +54,6 @@ public class CassandraMailboxMapper implements MailboxMapper<UUID> {
     private static final String[] FIELDS = { ID, USER, NAMESPACE, UIDVALIDITY, NAME, PATH };
     private Session session;
 
-    @Inject
     public CassandraMailboxMapper(Session session) {
         this.session = session;
     }

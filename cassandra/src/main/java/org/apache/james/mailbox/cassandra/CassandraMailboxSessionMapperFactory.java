@@ -16,12 +16,10 @@
  * specific language governing permissions and limitations      *
  * under the License.                                           *
  ****************************************************************/
+
 package org.apache.james.mailbox.cassandra;
 
 import java.util.UUID;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import org.apache.james.mailbox.MailboxSession;
 import org.apache.james.mailbox.cassandra.mail.CassandraMailboxMapper;
@@ -33,21 +31,18 @@ import org.apache.james.mailbox.store.mail.MailboxMapper;
 import org.apache.james.mailbox.store.mail.MessageMapper;
 import org.apache.james.mailbox.store.user.SubscriptionMapper;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.datastax.driver.core.Session;
 
-@Singleton
+/**
+ * Cassandra implementation of {@link MailboxSessionMapperFactory}
+ * 
+ */
 public class CassandraMailboxSessionMapperFactory extends MailboxSessionMapperFactory<UUID> {
 
-    private MailboxMapper<UUID> mailboxMapper;
-    private MessageMapper<UUID> messageMapper;
-    private SubscriptionMapper subscriptionMapper;
-
-    @Inject
-    @VisibleForTesting
-    CassandraMailboxSessionMapperFactory(CassandraMailboxMapper mailboxMapper, CassandraMessageMapper messageMapper, SubscriptionMapper subscriptionMapper) {
-        this.mailboxMapper = mailboxMapper;
-        this.messageMapper = messageMapper;
-        this.subscriptionMapper = subscriptionMapper;
+    public CassandraMailboxSessionMapperFactory(CassandraUidProvider uidProvider, ModSeqProvider<UUID> modSeqProvider, CassandraSession session) {
+        this.uidProvider = uidProvider;
+        this.modSeqProvider = modSeqProvider;
+        this.session = session;
     }
 
     @Override

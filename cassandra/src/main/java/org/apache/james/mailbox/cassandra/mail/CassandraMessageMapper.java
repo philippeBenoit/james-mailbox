@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.inject.Inject;
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 import javax.mail.util.SharedByteArrayInputStream;
@@ -81,8 +80,7 @@ public class CassandraMessageMapper implements MessageMapper<UUID> {
     private MailboxSession mailboxSession;
     private UidProvider<UUID> uidProvider;
 
-    @Inject
-    public CassandraMessageMapper(Session session, UidProvider<UUID> uidProvider, ModSeqProvider<UUID> modSeqProvider) {
+    public CassandraMessageMapper(Session session, CassandraUidProvider uidProvider, ModSeqProvider<UUID> modSeqProvider) {
         this.session = session;
         this.uidProvider = uidProvider;
         this.modSeqProvider = modSeqProvider;

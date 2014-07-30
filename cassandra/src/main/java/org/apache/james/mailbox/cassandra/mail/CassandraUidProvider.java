@@ -26,8 +26,6 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
 
 import java.util.UUID;
 
-import javax.inject.Inject;
-
 import org.apache.james.mailbox.MailboxSession;
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.store.mail.UidProvider;
@@ -37,10 +35,8 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
 public class CassandraUidProvider implements UidProvider<UUID> {
-
     private Session session;
 
-    @Inject
     public CassandraUidProvider(Session session) {
         this.session = session;
     }

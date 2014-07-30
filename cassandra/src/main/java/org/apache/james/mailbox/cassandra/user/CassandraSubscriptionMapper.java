@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations      *
  * under the License.                                           *
  ****************************************************************/
+
 package org.apache.james.mailbox.cassandra.user;
 
 import java.util.ArrayList;
@@ -24,14 +25,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.inject.Singleton;
+import java.util.List;
 
 import org.apache.james.mailbox.store.transaction.NonTransactionalMapper;
 import org.apache.james.mailbox.store.user.SubscriptionMapper;
 import org.apache.james.mailbox.store.user.model.Subscription;
 
-@Singleton
-public class CassandraSubscriptionMapper extends NonTransactionalMapper implements SubscriptionMapper {
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.querybuilder.Insert;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Select;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 
     private static final int INITIAL_SIZE = 64;
     private final Map<String, List<Subscription>> subscriptionsByUser;
