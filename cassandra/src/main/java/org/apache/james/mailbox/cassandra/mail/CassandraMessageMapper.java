@@ -242,9 +242,8 @@ public class CassandraMessageMapper implements MessageMapper<UUID> {
         ImmutableList.Builder<Long> result = ImmutableList.<Long> builder();
         ResultSet rows = session.execute(selectAll(mailbox).orderBy(asc(IMAP_UID)));
         for (Row row : rows) {
-            Message<UUID> message = message(row);
-            if (message.isRecent()) {
-                result.add(message.getUid());
+            if (row.getBool(RECENT)) {
+                result.add(row.getLong(IMAP_UID));
             }
         }
         return result.build();
@@ -254,9 +253,8 @@ public class CassandraMessageMapper implements MessageMapper<UUID> {
     public Long findFirstUnseenMessageUid(Mailbox<UUID> mailbox) throws MailboxException {
         ResultSet rows = session.execute(selectAll(mailbox).orderBy(asc(IMAP_UID)));
         for (Row row : rows) {
-            Message<UUID> message = message(row);
-            if (!message.isSeen()) {
-                return message.getUid();
+            if (!row.getBool(SEEN)) {
+                return row.getLong(IMAP_UID);
             }
         }
         return null;
@@ -267,8 +265,8 @@ public class CassandraMessageMapper implements MessageMapper<UUID> {
         ImmutableMap.Builder<Long, MessageMetaData> deletedMessages = ImmutableMap.builder();
         ResultSet messages = session.execute(buildQuery(mailbox, set));
         for (Row row : messages) {
-            Message<UUID> message = message(row);
-            if (message.isDeleted()) {
+            if (row.getBool(DELETED)) {
+                Message<UUID> message = message(row);
                 delete(mailbox, message);
                 deletedMessages.put(message.getUid(), new SimpleMessageMetaData(message));
             }
