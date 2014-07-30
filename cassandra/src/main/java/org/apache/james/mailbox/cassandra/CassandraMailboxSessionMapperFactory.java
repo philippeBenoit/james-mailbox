@@ -41,14 +41,15 @@ public class CassandraMailboxSessionMapperFactory extends MailboxSessionMapperFa
     private MailboxMapper<UUID> mailboxMapper;
     private MessageMapper<UUID> messageMapper;
     private SubscriptionMapper subscriptionMapper;
-    
+
     @Inject
-    @VisibleForTesting CassandraMailboxSessionMapperFactory(CassandraMailboxMapper mailboxMapper, CassandraMessageMapper messageMapper, SubscriptionMapper subscriptionMapper) {
+    @VisibleForTesting
+    CassandraMailboxSessionMapperFactory(CassandraMailboxMapper mailboxMapper, CassandraMessageMapper messageMapper, SubscriptionMapper subscriptionMapper) {
         this.mailboxMapper = mailboxMapper;
         this.messageMapper = messageMapper;
-		this.subscriptionMapper = subscriptionMapper;
+        this.subscriptionMapper = subscriptionMapper;
     }
-    
+
     @Override
     public MailboxMapper<UUID> createMailboxMapper(MailboxSession session) throws MailboxException {
         return mailboxMapper;

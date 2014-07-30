@@ -74,184 +74,156 @@ import com.google.common.io.ByteStreams;
 
 public class CassandraMessageMapper implements MessageMapper<UUID> {
 
-	private static final String[] FIELDS = {
-		MessageTable.MAILBOX_ID, MessageTable.IMAP_UID, MessageTable.INTERNAL_DATE, MessageTable.MOD_SEQ,
-		MessageTable.BODY_START_OCTET,
-		MessageTable.MEDIA_TYPE, MessageTable.SUB_TYPE, MessageTable.FULL_CONTENT_OCTETS,
-		MessageTable.BODY_OCTECTS, MessageTable.Flag.ANSWERED, MessageTable.Flag.DELETED,
-		MessageTable.Flag.DRAFT, MessageTable.Flag.FLAGGED, MessageTable.Flag.RECENT,
-		MessageTable.Flag.SEEN,	MessageTable.Flag.USER, MessageTable.BODY_CONTENT, MessageTable.HEADER_CONTENT};
-	private Session session;
-	private ModSeqProvider<UUID> modSeqProvider;
-	private MailboxSession mailboxSession;
-	private UidProvider<UUID> uidProvider;
+    private static final String[] FIELDS = { MessageTable.MAILBOX_ID, MessageTable.IMAP_UID, MessageTable.INTERNAL_DATE, MessageTable.MOD_SEQ, MessageTable.BODY_START_OCTET, MessageTable.MEDIA_TYPE, MessageTable.SUB_TYPE, MessageTable.FULL_CONTENT_OCTETS, MessageTable.BODY_OCTECTS,
+            MessageTable.Flag.ANSWERED, MessageTable.Flag.DELETED, MessageTable.Flag.DRAFT, MessageTable.Flag.FLAGGED, MessageTable.Flag.RECENT, MessageTable.Flag.SEEN, MessageTable.Flag.USER, MessageTable.BODY_CONTENT, MessageTable.HEADER_CONTENT };
+    private Session session;
+    private ModSeqProvider<UUID> modSeqProvider;
+    private MailboxSession mailboxSession;
+    private UidProvider<UUID> uidProvider;
 
     @Inject
-    public CassandraMessageMapper(Session session, UidProvider<UUID> uidProvider,
-            ModSeqProvider<UUID> modSeqProvider) {
-		this.session = session;
-		this.uidProvider = uidProvider;
-		this.modSeqProvider = modSeqProvider;
+    public CassandraMessageMapper(Session session, UidProvider<UUID> uidProvider, ModSeqProvider<UUID> modSeqProvider) {
+        this.session = session;
+        this.uidProvider = uidProvider;
+        this.modSeqProvider = modSeqProvider;
     }
 
     @Override
     public long countMessagesInMailbox(Mailbox<UUID> mailbox) throws MailboxException {
-        ResultSet results = session.execute(
-        		select(MailboxCountersTable.COUNT).from(MailboxCountersTable.TABLE_NAME).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
+        ResultSet results = session.execute(select(MailboxCountersTable.COUNT).from(MailboxCountersTable.TABLE_NAME).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
         if (results.isExhausted()) {
-        	return 0;
+            return 0;
         } else {
-        	return results.one().getLong(MailboxCountersTable.COUNT);
+            return results.one().getLong(MailboxCountersTable.COUNT);
         }
     }
 
     @Override
     public long countUnseenMessagesInMailbox(Mailbox<UUID> mailbox) throws MailboxException {
-    	ResultSet results = session.execute(
-        		select(MailboxCountersTable.COUNT).from(MailboxCountersTable.TABLE_NAME).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
+        ResultSet results = session.execute(select(MailboxCountersTable.COUNT).from(MailboxCountersTable.TABLE_NAME).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
         if (!results.isExhausted()) {
-        	Row row = results.one();
-        	if (row.getColumnDefinitions().contains(MailboxCountersTable.UNSEEN)) {
-        		return row.getLong(MailboxCountersTable.UNSEEN);
-        	}
+            Row row = results.one();
+            if (row.getColumnDefinitions().contains(MailboxCountersTable.UNSEEN)) {
+                return row.getLong(MailboxCountersTable.UNSEEN);
+            }
         }
         return 0;
     }
 
     @Override
     public void delete(Mailbox<UUID> mailbox, Message<UUID> message) throws MailboxException {
-    	session.execute(QueryBuilder.delete()
-    			.from(MessageTable.TABLE_NAME)
-    			.where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId()))
-    			.and(eq(MessageTable.IMAP_UID, message.getUid())));
-    	decrementCount(mailbox);
-    	if (!message.isSeen()) {
-    		decrementUnseen(mailbox);
-    	}
+        session.execute(QueryBuilder.delete().from(MessageTable.TABLE_NAME).where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId())).and(eq(MessageTable.IMAP_UID, message.getUid())));
+        decrementCount(mailbox);
+        if (!message.isSeen()) {
+            decrementUnseen(mailbox);
+        }
     }
 
-	private void decrementCount(Mailbox<UUID> mailbox) {
-		updateMailbox(mailbox, decr(MailboxCountersTable.COUNT));
-	}
+    private void decrementCount(Mailbox<UUID> mailbox) {
+        updateMailbox(mailbox, decr(MailboxCountersTable.COUNT));
+    }
 
-	private void incrementCount(Mailbox<UUID> mailbox) {
-		updateMailbox(mailbox, incr(MailboxCountersTable.COUNT));
-	}
-	
-	private void decrementUnseen(Mailbox<UUID> mailbox) {
-		updateMailbox(mailbox, decr(MailboxCountersTable.UNSEEN));
-	}
+    private void incrementCount(Mailbox<UUID> mailbox) {
+        updateMailbox(mailbox, incr(MailboxCountersTable.COUNT));
+    }
 
-	private void incrementUnseen(Mailbox<UUID> mailbox) {
-		updateMailbox(mailbox, incr(MailboxCountersTable.UNSEEN));
-	}
+    private void decrementUnseen(Mailbox<UUID> mailbox) {
+        updateMailbox(mailbox, decr(MailboxCountersTable.UNSEEN));
+    }
 
-	
-	private void updateMailbox(Mailbox<UUID> mailbox, Assignment operation) {
-		session.execute(update(MailboxCountersTable.TABLE_NAME)
-				.with(operation)
-				.where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
-	}
+    private void incrementUnseen(Mailbox<UUID> mailbox) {
+        updateMailbox(mailbox, incr(MailboxCountersTable.UNSEEN));
+    }
+
+    private void updateMailbox(Mailbox<UUID> mailbox, Assignment operation) {
+        session.execute(update(MailboxCountersTable.TABLE_NAME).with(operation).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
+    }
 
     @Override
-    public Iterator<Message<UUID>> findInMailbox(Mailbox<UUID> mailbox, MessageRange set, FetchType ftype, int max)
-            throws MailboxException {
-    	Builder<Message<UUID>> result = ImmutableSortedSet.<Message<UUID>>naturalOrder();
-    	ResultSet rows = session.execute(buildQuery(mailbox, set));
-        for (Row row: rows) {
-        	result.add(message(row));
+    public Iterator<Message<UUID>> findInMailbox(Mailbox<UUID> mailbox, MessageRange set, FetchType ftype, int max) throws MailboxException {
+        Builder<Message<UUID>> result = ImmutableSortedSet.<Message<UUID>> naturalOrder();
+        ResultSet rows = session.execute(buildQuery(mailbox, set));
+        for (Row row : rows) {
+            result.add(message(row));
         }
         return result.build().iterator();
     }
 
-	private Message<UUID> message(Row row) {
-		SimpleMessage<UUID> message = new SimpleMessage<UUID>(
-				row.getDate(MessageTable.INTERNAL_DATE),
-				row.getInt(MessageTable.FULL_CONTENT_OCTETS),
-				row.getInt(MessageTable.BODY_START_OCTET),
-				new SharedByteArrayInputStream(row.getBytes(MessageTable.BODY_CONTENT).array()),
-				new Flags(),
-				new PropertyBuilder(), 
-				row.getUUID(MessageTable.MAILBOX_ID));
-		message.setUid(row.getLong(MessageTable.IMAP_UID));
-		return message;
-	}
-	
-	private Where buildQuery(Mailbox<UUID> mailbox, MessageRange set) {
-		final MessageRange.Type type = set.getType();
+    private Message<UUID> message(Row row) {
+        SimpleMessage<UUID> message = new SimpleMessage<UUID>(row.getDate(MessageTable.INTERNAL_DATE), row.getInt(MessageTable.FULL_CONTENT_OCTETS), row.getInt(MessageTable.BODY_START_OCTET), new SharedByteArrayInputStream(row.getBytes(MessageTable.BODY_CONTENT).array()), new Flags(),
+                new PropertyBuilder(), row.getUUID(MessageTable.MAILBOX_ID));
+        message.setUid(row.getLong(MessageTable.IMAP_UID));
+        return message;
+    }
+
+    private Where buildQuery(Mailbox<UUID> mailbox, MessageRange set) {
+        final MessageRange.Type type = set.getType();
         switch (type) {
         case ALL:
             return selectAll(mailbox);
         case FROM:
-        	return selectFrom(mailbox, set.getUidFrom());
+            return selectFrom(mailbox, set.getUidFrom());
         case RANGE:
-        	return selectRange(mailbox, set.getUidFrom(), set.getUidTo());
+            return selectRange(mailbox, set.getUidFrom(), set.getUidTo());
         case ONE:
-        	return selectMessage(mailbox, set.getUidFrom());
+            return selectMessage(mailbox, set.getUidFrom());
         }
         throw new UnsupportedOperationException();
-	}
+    }
 
-	private Where selectAll(Mailbox<UUID> mailbox) {
-		return select(FIELDS).from(MessageTable.TABLE_NAME).where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId()));
-	}
-	
-	private Where selectFrom(Mailbox<UUID> mailbox, long uid) {
-		return select(FIELDS).from(MessageTable.TABLE_NAME).where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId())).and(gt(MessageTable.IMAP_UID, uid));
-	}
+    private Where selectAll(Mailbox<UUID> mailbox) {
+        return select(FIELDS).from(MessageTable.TABLE_NAME).where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId()));
+    }
 
+    private Where selectFrom(Mailbox<UUID> mailbox, long uid) {
+        return select(FIELDS).from(MessageTable.TABLE_NAME).where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId())).and(gt(MessageTable.IMAP_UID, uid));
+    }
 
-	private Where selectRange(Mailbox<UUID> mailbox, long from, long to) {
-		return select(FIELDS).from(MessageTable.TABLE_NAME)
-					.where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId()))
-					.and(gt(MessageTable.IMAP_UID, from))
-					.and(lt(MessageTable.IMAP_UID, to));
-	}
+    private Where selectRange(Mailbox<UUID> mailbox, long from, long to) {
+        return select(FIELDS).from(MessageTable.TABLE_NAME).where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId())).and(gt(MessageTable.IMAP_UID, from)).and(lt(MessageTable.IMAP_UID, to));
+    }
 
-	private Where selectMessage(Mailbox<UUID> mailbox, long uid) {
-		return select(FIELDS).from(MessageTable.TABLE_NAME)
-				.where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId()))
-				.and(eq(MessageTable.IMAP_UID, uid));
-	}
-	
-	@Override
-	public List<Long> findRecentMessageUidsInMailbox(Mailbox<UUID> mailbox) throws MailboxException {
-		ImmutableList.Builder<Long> result = ImmutableList.<Long>builder();
-    	ResultSet rows = session.execute(selectAll(mailbox).orderBy(asc(MessageTable.IMAP_UID)));
-        for (Row row: rows) {
-        	Message<UUID> message = message(row);
-        	if (message.isRecent()) {
-        		result.add(message.getUid());
-        	}
+    private Where selectMessage(Mailbox<UUID> mailbox, long uid) {
+        return select(FIELDS).from(MessageTable.TABLE_NAME).where(eq(MessageTable.MAILBOX_ID, mailbox.getMailboxId())).and(eq(MessageTable.IMAP_UID, uid));
+    }
+
+    @Override
+    public List<Long> findRecentMessageUidsInMailbox(Mailbox<UUID> mailbox) throws MailboxException {
+        ImmutableList.Builder<Long> result = ImmutableList.<Long> builder();
+        ResultSet rows = session.execute(selectAll(mailbox).orderBy(asc(MessageTable.IMAP_UID)));
+        for (Row row : rows) {
+            Message<UUID> message = message(row);
+            if (message.isRecent()) {
+                result.add(message.getUid());
+            }
         }
         return result.build();
     }
 
-
-	@Override
+    @Override
     public Long findFirstUnseenMessageUid(Mailbox<UUID> mailbox) throws MailboxException {
-		ResultSet rows = session.execute(selectAll(mailbox).orderBy(asc(MessageTable.IMAP_UID)));
-        for (Row row: rows) {
-        	Message<UUID> message = message(row);
-        	if (!message.isSeen()) {
-        		return message.getUid();
-        	}
+        ResultSet rows = session.execute(selectAll(mailbox).orderBy(asc(MessageTable.IMAP_UID)));
+        for (Row row : rows) {
+            Message<UUID> message = message(row);
+            if (!message.isSeen()) {
+                return message.getUid();
+            }
         }
         return null;
     }
 
     @Override
     public Map<Long, MessageMetaData> expungeMarkedForDeletionInMailbox(final Mailbox<UUID> mailbox, MessageRange set) throws MailboxException {
-    	ImmutableMap.Builder<Long, MessageMetaData> deletedMessages = ImmutableMap.builder();
-    	ResultSet messages = session.execute(buildQuery(mailbox, set));
-    	for (Row row: messages) {
-    		Message<UUID> message = message(row);
-    		if (message.isDeleted()) {
-    			delete(mailbox, message);
-    			deletedMessages.put(message.getUid(), new SimpleMessageMetaData(message));
-    		}
-    	}
-    	return deletedMessages.build();
+        ImmutableMap.Builder<Long, MessageMetaData> deletedMessages = ImmutableMap.builder();
+        ResultSet messages = session.execute(buildQuery(mailbox, set));
+        for (Row row : messages) {
+            Message<UUID> message = message(row);
+            if (message.isDeleted()) {
+                delete(mailbox, message);
+                deletedMessages.put(message.getUid(), new SimpleMessageMetaData(message));
+            }
+        }
+        return deletedMessages.build();
     }
 
     @Override
@@ -266,106 +238,86 @@ public class CassandraMessageMapper implements MessageMapper<UUID> {
 
     @Override
     public long getHighestModSeq(Mailbox<UUID> mailbox) throws MailboxException {
-    	return modSeqProvider.highestModSeq(mailboxSession, mailbox);
+        return modSeqProvider.highestModSeq(mailboxSession, mailbox);
     }
 
-	@Override
-	public <T> T execute(Transaction<T> transaction) throws MailboxException {
-		return transaction.run();
-	}
+    @Override
+    public <T> T execute(Transaction<T> transaction) throws MailboxException {
+        return transaction.run();
+    }
 
-	@Override
-	public MessageMetaData add(Mailbox<UUID> mailbox, Message<UUID> message)
-			throws MailboxException {
-		message.setUid(uidProvider.nextUid(mailboxSession, mailbox));
-		message.setModSeq(modSeqProvider.nextModSeq(mailboxSession, mailbox));
-		MessageMetaData messageMetaData = save(mailbox, message);
-		incrementUnseen(mailbox);
-		incrementCount(mailbox);
-		return messageMetaData;
-	}
+    @Override
+    public MessageMetaData add(Mailbox<UUID> mailbox, Message<UUID> message) throws MailboxException {
+        message.setUid(uidProvider.nextUid(mailboxSession, mailbox));
+        message.setModSeq(modSeqProvider.nextModSeq(mailboxSession, mailbox));
+        MessageMetaData messageMetaData = save(mailbox, message);
+        incrementUnseen(mailbox);
+        incrementCount(mailbox);
+        return messageMetaData;
+    }
 
-	private MessageMetaData save(Mailbox<UUID> mailbox, Message<UUID> message) throws MailboxException {
-		try {
-			Insert query = insertInto(MessageTable.TABLE_NAME)
-				.value(MessageTable.MAILBOX_ID, mailbox.getMailboxId())
-				.value(MessageTable.IMAP_UID, message.getUid())
-				.value(MessageTable.MOD_SEQ, message.getModSeq())
-				.value(MessageTable.INTERNAL_DATE, message.getInternalDate())
-				.value(MessageTable.MEDIA_TYPE, message.getMediaType())
-				.value(MessageTable.SUB_TYPE, message.getSubType())
-				.value(MessageTable.FULL_CONTENT_OCTETS, message.getFullContentOctets())
-				.value(MessageTable.BODY_OCTECTS, message.getBodyOctets())
-				.value(MessageTable.Flag.ANSWERED, message.isAnswered())
-				.value(MessageTable.Flag.DELETED, message.isDeleted())
-				.value(MessageTable.Flag.DRAFT, message.isDraft())
-				.value(MessageTable.Flag.FLAGGED, message.isFlagged())
-				.value(MessageTable.Flag.RECENT, message.isRecent())
-				.value(MessageTable.Flag.SEEN, message.isSeen())
-				.value(MessageTable.Flag.USER, message.createFlags().contains(Flag.USER))
-				.value(MessageTable.BODY_CONTENT, bindMarker())
-				.value(MessageTable.HEADER_CONTENT, bindMarker());
-			if (message.getTextualLineCount() != null) {
-				query.value(MessageTable.TEXTUAL_LINE_COUNT, message.getTextualLineCount());
-			}
-			PreparedStatement preparedStatement = session.prepare(query.toString());
-			BoundStatement boundStatement = preparedStatement.bind(
-					toByteBuffer(message.getBodyContent()),
-					toByteBuffer(message.getHeaderContent()));
-			session.execute(boundStatement);
-			return new SimpleMessageMetaData(message);
-		} catch (IOException e) {
-			throw new MailboxException("Error saving mail", e);
-		}
-	}
+    private MessageMetaData save(Mailbox<UUID> mailbox, Message<UUID> message) throws MailboxException {
+        try {
+            Insert query = insertInto(MessageTable.TABLE_NAME).value(MessageTable.MAILBOX_ID, mailbox.getMailboxId()).value(MessageTable.IMAP_UID, message.getUid()).value(MessageTable.MOD_SEQ, message.getModSeq()).value(MessageTable.INTERNAL_DATE, message.getInternalDate())
+                    .value(MessageTable.MEDIA_TYPE, message.getMediaType()).value(MessageTable.SUB_TYPE, message.getSubType()).value(MessageTable.FULL_CONTENT_OCTETS, message.getFullContentOctets()).value(MessageTable.BODY_OCTECTS, message.getBodyOctets())
+                    .value(MessageTable.Flag.ANSWERED, message.isAnswered()).value(MessageTable.Flag.DELETED, message.isDeleted()).value(MessageTable.Flag.DRAFT, message.isDraft()).value(MessageTable.Flag.FLAGGED, message.isFlagged()).value(MessageTable.Flag.RECENT, message.isRecent())
+                    .value(MessageTable.Flag.SEEN, message.isSeen()).value(MessageTable.Flag.USER, message.createFlags().contains(Flag.USER)).value(MessageTable.BODY_CONTENT, bindMarker()).value(MessageTable.HEADER_CONTENT, bindMarker());
+            if (message.getTextualLineCount() != null) {
+                query.value(MessageTable.TEXTUAL_LINE_COUNT, message.getTextualLineCount());
+            }
+            PreparedStatement preparedStatement = session.prepare(query.toString());
+            BoundStatement boundStatement = preparedStatement.bind(toByteBuffer(message.getBodyContent()), toByteBuffer(message.getHeaderContent()));
+            session.execute(boundStatement);
+            return new SimpleMessageMetaData(message);
+        } catch (IOException e) {
+            throw new MailboxException("Error saving mail", e);
+        }
+    }
 
-	private ByteBuffer toByteBuffer(InputStream stream) throws IOException {
-		return ByteBuffer.wrap(ByteStreams.toByteArray(stream));
-	}
+    private ByteBuffer toByteBuffer(InputStream stream) throws IOException {
+        return ByteBuffer.wrap(ByteStreams.toByteArray(stream));
+    }
 
-	@Override
-	public Iterator<UpdatedFlags> updateFlags(Mailbox<UUID> mailbox,
-			Flags flags, boolean value, boolean replace, MessageRange set)
-			throws MailboxException {
-		ImmutableList.Builder<UpdatedFlags> result = ImmutableList.builder();
-		ResultSet messages = session.execute(buildQuery(mailbox, set));
-    	for (Row row: messages) {
-    		Message<UUID> message = message(row);
-    		Flags originFlags = message.createFlags();
-    		Flags updatedFlags = buildFlags(message, flags, value, replace);
-    		message.setFlags(updatedFlags);
-    		message.setModSeq(modSeqProvider.nextModSeq(mailboxSession, mailbox));
-    		save(mailbox, message);
-    		result.add(new UpdatedFlags(message.getUid(), message.getModSeq(), originFlags, updatedFlags));
-    	}
-    	return result.build().iterator();
-	}
+    @Override
+    public Iterator<UpdatedFlags> updateFlags(Mailbox<UUID> mailbox, Flags flags, boolean value, boolean replace, MessageRange set) throws MailboxException {
+        ImmutableList.Builder<UpdatedFlags> result = ImmutableList.builder();
+        ResultSet messages = session.execute(buildQuery(mailbox, set));
+        for (Row row : messages) {
+            Message<UUID> message = message(row);
+            Flags originFlags = message.createFlags();
+            Flags updatedFlags = buildFlags(message, flags, value, replace);
+            message.setFlags(updatedFlags);
+            message.setModSeq(modSeqProvider.nextModSeq(mailboxSession, mailbox));
+            save(mailbox, message);
+            result.add(new UpdatedFlags(message.getUid(), message.getModSeq(), originFlags, updatedFlags));
+        }
+        return result.build().iterator();
+    }
 
-	private Flags buildFlags(Message<UUID> message, Flags flags, boolean value, boolean replace) {
-		if (replace) {
-			return message.createFlags();
-		} else {
-			Flags updatedFlags = message.createFlags();
-			if (value) {
-				updatedFlags.add(flags);
-			} else {
-				updatedFlags.remove(flags);
-			}
-			return updatedFlags;
-		}
-	}
+    private Flags buildFlags(Message<UUID> message, Flags flags, boolean value, boolean replace) {
+        if (replace) {
+            return message.createFlags();
+        } else {
+            Flags updatedFlags = message.createFlags();
+            if (value) {
+                updatedFlags.add(flags);
+            } else {
+                updatedFlags.remove(flags);
+            }
+            return updatedFlags;
+        }
+    }
 
-	@Override
-	public MessageMetaData copy(Mailbox<UUID> mailbox, Message<UUID> original) throws MailboxException {
+    @Override
+    public MessageMetaData copy(Mailbox<UUID> mailbox, Message<UUID> original) throws MailboxException {
         original.setUid(uidProvider.nextUid(mailboxSession, mailbox));
         original.setModSeq(modSeqProvider.nextModSeq(mailboxSession, mailbox));
         return save(mailbox, original);
-	}
+    }
 
-	@Override
-	public long getLastUid(Mailbox<UUID> mailbox) throws MailboxException {
-		return uidProvider.lastUid(mailboxSession, mailbox);
-	}
-    
-    
+    @Override
+    public long getLastUid(Mailbox<UUID> mailbox) throws MailboxException {
+        return uidProvider.lastUid(mailboxSession, mailbox);
+    }
+
 }

@@ -37,34 +37,28 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 
 public class CassandraUidProvider implements UidProvider<UUID> {
-    
-	private Session session;
-	
-	@Inject
-	public CassandraUidProvider(Session session) {
-		this.session = session;
-	}
 
-	@Override
+    private Session session;
+
+    @Inject
+    public CassandraUidProvider(Session session) {
+        this.session = session;
+    }
+
+    @Override
     public long nextUid(MailboxSession mailboxSession, Mailbox<UUID> mailbox) throws MailboxException {
-    	session.execute(
-    			update(MailboxCountersTable.TABLE_NAME)
-    				.with(incr(MailboxCountersTable.NEXT_UID))
-    				.where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
-    	return lastUid(mailboxSession, mailbox);
+        session.execute(update(MailboxCountersTable.TABLE_NAME).with(incr(MailboxCountersTable.NEXT_UID)).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
+        return lastUid(mailboxSession, mailbox);
     }
 
     @Override
     public long lastUid(MailboxSession mailboxSession, Mailbox<UUID> mailbox) throws MailboxException {
-    	ResultSet result = session.execute(
-    			select(MailboxCountersTable.NEXT_UID)
-    				.from(MailboxCountersTable.TABLE_NAME)
-    				.where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
-    	if (result.isExhausted()) {
-    		return 0;
-    	} else {
-    		return result.one().getLong(MailboxCountersTable.NEXT_UID);
-    	}        
+        ResultSet result = session.execute(select(MailboxCountersTable.NEXT_UID).from(MailboxCountersTable.TABLE_NAME).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
+        if (result.isExhausted()) {
+            return 0;
+        } else {
+            return result.one().getLong(MailboxCountersTable.NEXT_UID);
+        }
     }
 
 }

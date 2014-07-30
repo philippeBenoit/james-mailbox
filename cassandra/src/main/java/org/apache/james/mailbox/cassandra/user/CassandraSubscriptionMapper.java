@@ -32,10 +32,10 @@ import org.apache.james.mailbox.store.user.model.Subscription;
 
 @Singleton
 public class CassandraSubscriptionMapper extends NonTransactionalMapper implements SubscriptionMapper {
-    
+
     private static final int INITIAL_SIZE = 64;
     private final Map<String, List<Subscription>> subscriptionsByUser;
-    
+
     public CassandraSubscriptionMapper() {
         subscriptionsByUser = new ConcurrentHashMap<String, List<Subscription>>(INITIAL_SIZE);
     }
@@ -54,7 +54,7 @@ public class CassandraSubscriptionMapper extends NonTransactionalMapper implemen
         final List<Subscription> subscriptions = subscriptionsByUser.get(user);
         Subscription result = null;
         if (subscriptions != null) {
-            for(Subscription subscription:subscriptions) {
+            for (Subscription subscription : subscriptions) {
                 if (subscription.getMailbox().equals(mailbox)) {
                     result = subscription;
                     break;
@@ -82,7 +82,7 @@ public class CassandraSubscriptionMapper extends NonTransactionalMapper implemen
         final String user = subscription.getUser();
         final List<Subscription> subscriptions = subscriptionsByUser.get(user);
         if (subscriptions == null) {
-            final List<Subscription> newSubscriptions  = new ArrayList<Subscription>();
+            final List<Subscription> newSubscriptions = new ArrayList<Subscription>();
             newSubscriptions.add(subscription);
             subscriptionsByUser.put(user, newSubscriptions);
         } else {

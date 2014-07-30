@@ -46,15 +46,15 @@ import org.slf4j.LoggerFactory;
  * InMemoryMailboxManagerTest that extends the MailboxManagerTest.
  */
 public class CassandraMailboxManagerTest extends AbstractMailboxManagerTest {
-    
-	 @Rule public CassandraCQLUnit cassandraCQLUnit = 
-	    	new CassandraCQLUnit(new ClassPathCQLDataSet("mailbox.cql","mailbox"));
 
-	 @Before
+    @Rule
+    public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new ClassPathCQLDataSet("mailbox.cql", "mailbox"));
+
+    @Before
     public void setup() throws Exception {
         createMailboxManager();
     }
-    
+
     @After
     public void tearDown() throws BadCredentialsException, MailboxException {
         MailboxSession session = getMailboxManager().createSystemSession("test", LoggerFactory.getLogger("Test"));
@@ -63,20 +63,18 @@ public class CassandraMailboxManagerTest extends AbstractMailboxManagerTest {
 
     @Override
     protected void createMailboxManager() throws MailboxException {
-    	CassandraMailboxMapper mailboxMapper = new CassandraMailboxMapper(cassandraCQLUnit.session);
-    	CassandraMessageMapper messageMapper = new CassandraMessageMapper(cassandraCQLUnit.session, 
-    			new CassandraUidProvider(cassandraCQLUnit.session), 
-    			new CassandraModSeqProvider(cassandraCQLUnit.session));
-    	CassandraSubscriptionMapper subscriptionMapper = new CassandraSubscriptionMapper();
+        CassandraMailboxMapper mailboxMapper = new CassandraMailboxMapper(cassandraCQLUnit.session);
+        CassandraMessageMapper messageMapper = new CassandraMessageMapper(cassandraCQLUnit.session, new CassandraUidProvider(cassandraCQLUnit.session), new CassandraModSeqProvider(cassandraCQLUnit.session));
+        CassandraSubscriptionMapper subscriptionMapper = new CassandraSubscriptionMapper();
         CassandraMailboxSessionMapperFactory factory = new CassandraMailboxSessionMapperFactory(mailboxMapper, messageMapper, subscriptionMapper);
         MailboxACLResolver aclResolver = new UnionMailboxACLResolver();
         GroupMembershipResolver groupMembershipResolver = new SimpleGroupMembershipResolver();
 
         StoreMailboxManager<UUID> mailboxManager = new StoreMailboxManager<UUID>(factory, new MockAuthenticator(), aclResolver, groupMembershipResolver);
         mailboxManager.init();
-        
+
         setMailboxManager(mailboxManager);
 
     }
-    
+
 }
