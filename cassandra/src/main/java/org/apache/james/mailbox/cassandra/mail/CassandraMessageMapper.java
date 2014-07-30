@@ -94,6 +94,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.ImmutableSortedSet.Builder;
 import com.google.common.io.ByteStreams;
+import com.google.common.primitives.Bytes;
 
 /**
  * Cassandra implementation of a {@link MessageMapper}.
@@ -170,6 +171,32 @@ public class CassandraMessageMapper implements MessageMapper<UUID> {
             result.add(message(row));
         }
         return result.build().iterator();
+    }
+
+    private byte[] getFullContent(Row row) {
+        byte[] headerContent = new byte[row.getBytes(HEADER_CONTENT).remaining()];
+        byte[] bodyContent = new byte[row.getBytes(BODY_CONTENT).remaining()];
+        row.getBytes(HEADER_CONTENT).get(headerContent);
+        row.getBytes(BODY_CONTENT).get(bodyContent);
+        return Bytes.concat(headerContent, bodyContent);
+    }
+
+    private Flags getFlags(Row row) {
+        Flags flags = new Flags();
+        for (String flag : CassandraMessageTable.Flag.ALL) {
+            if (row.getBool(flag)) {
+                flags.add(JAVAX_MAIL_FLAG.get(flag));
+            }
+        }
+        return flags;
+    }
+
+    private PropertyBuilder getPropertyBuilder(Row row) {
+        PropertyBuilder property = new PropertyBuilder();
+        property.setSubType(row.getString(SUB_TYPE));
+        property.setMediaType(row.getString(MEDIA_TYPE));
+        property.setTextualLineCount(row.getLong(TEXTUAL_LINE_COUNT));
+        return property;
     }
 
     private Message<UUID> message(Row row) {
