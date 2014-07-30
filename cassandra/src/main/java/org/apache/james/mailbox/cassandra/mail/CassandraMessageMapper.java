@@ -95,6 +95,9 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.ImmutableSortedSet.Builder;
 import com.google.common.io.ByteStreams;
 
+/**
+ * Cassandra implementation of a {@link MessageMapper}.
+ */
 public class CassandraMessageMapper implements MessageMapper<UUID> {
 
     private Session session;

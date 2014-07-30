@@ -50,6 +50,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 
+/**
+ * Data access management for mailbox.
+ */
 public class CassandraMailboxMapper implements MailboxMapper<UUID> {
 
     private Session session;
