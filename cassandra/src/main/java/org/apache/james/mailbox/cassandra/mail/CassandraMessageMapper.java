@@ -328,8 +328,7 @@ public class CassandraMessageMapper implements MessageMapper<UUID> {
     @Override
     public Iterator<UpdatedFlags> updateFlags(Mailbox<UUID> mailbox, Flags flags, boolean value, boolean replace, MessageRange set) throws MailboxException {
         ImmutableList.Builder<UpdatedFlags> result = ImmutableList.builder();
-        ResultSet messages = session.execute(buildQuery(mailbox, set));
-        for (Row row : messages) {
+        for (Row row : session.execute(buildQuery(mailbox, set))) {
             Message<UUID> message = message(row);
             Flags originFlags = message.createFlags();
             Flags updatedFlags = buildFlags(message, flags, value, replace);
