@@ -28,8 +28,8 @@
     </parent>
 
     <artifactId>apache-james-mailbox-cassandra</artifactId>
+    <description>Apache James Mailbox implementation over Cassandra</description>
     <name>Apache James :: Mailbox :: Cassandra</name>
-    <packaging>bundle</packaging>
 
     <dependencies>
         <dependency>
@@ -37,17 +37,13 @@
             <artifactId>${javax.mail.artifactId}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.james</groupId>
-            <artifactId>apache-james-mailbox-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.james</groupId>
-            <artifactId>apache-james-mailbox-store</artifactId>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -55,41 +51,69 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.james</groupId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>apache-james-mailbox-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>apache-james-mailbox-store</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>apache-james-mailbox-api</artifactId>
             <scope>test</scope>
             <type>test-jar</type>
         </dependency>
         <dependency>
-            <groupId>org.apache.james</groupId>
-            <artifactId>apache-james-mailbox-store</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
+	  <groupId>com.datastax.cassandra</groupId>
+	  <artifactId>cassandra-driver-core</artifactId>
+	  <version>${cassandra-driver-core.version}</version>
+	</dependency>
+	<dependency>
+    	    <groupId>org.cassandraunit</groupId>
+   	    <artifactId>cassandra-unit</artifactId>
+            <version>${cassandra-unit.version}</version>
         </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-                <dependency>
-			<groupId>org.cassandraunit</groupId>
-			<artifactId>cassandra-unit</artifactId>
-			<version>1.2.0.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.datastax.cassandra</groupId>
-			<artifactId>cassandra-driver-core</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>javax.inject</groupId>
-			<artifactId>javax.inject</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.0.13</version>
-			<scope>test</scope>
-		</dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>noTest</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>true</skipTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>fully.qualified.MainClass</mainClass>
+                         </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
