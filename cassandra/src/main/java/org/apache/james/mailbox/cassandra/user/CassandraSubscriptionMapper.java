@@ -51,39 +51,25 @@ public class CassandraSubscriptionMapper extends NonTransactionalMapper implemen
 
     @Override
     public synchronized void delete(Subscription subscription) {
-        final String user = subscription.getUser();
-        final List<Subscription> subscriptions = subscriptionsByUser.get(user);
-        if (subscriptions != null) {
-            subscriptions.remove(subscription);
-        }
+        session.execute(QueryBuilder.delete().from(TABLE_NAME).where(eq(USER, subscription.getUser())).and(eq(MAILBOX, subscription.getMailbox())));
     }
 
     @Override
     public Subscription findMailboxSubscriptionForUser(String user, String mailbox) {
-        final List<Subscription> subscriptions = subscriptionsByUser.get(user);
-        Subscription result = null;
-        if (subscriptions != null) {
-            for (Subscription subscription : subscriptions) {
-                if (subscription.getMailbox().equals(mailbox)) {
-                    result = subscription;
-                    break;
-                }
-            }
-        }
-        return result;
+        ResultSet results = session.execute(select(MAILBOX).from(TABLE_NAME).where(eq(USER, user)).and(eq(MAILBOX, mailbox)));
+        return !results.isExhausted() ? new SimpleSubscription(user, mailbox) : null;
     }
 
     @Override
     public List<Subscription> findSubscriptionsForUser(String user) {
-        final List<Subscription> subcriptions = subscriptionsByUser.get(user);
-        final List<Subscription> results;
-        if (subcriptions == null) {
-            results = Collections.EMPTY_LIST;
-        } else {
-            // Make a copy to prevent concurrent modifications
-            results = new ArrayList<Subscription>(subcriptions);
+        Builder<Subscription> result = ImmutableList.<Subscription> builder();
+        Select query = select(MAILBOX).from(TABLE_NAME);
+        query.where(eq(USER, user));
+        query.allowFiltering();
+        for (Row row : session.execute(query)) {
+            result.add(new SimpleSubscription(user, row.getString(MAILBOX)));
         }
-        return results;
+        return result.build();
     }
 
     @Override
