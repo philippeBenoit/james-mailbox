@@ -52,12 +52,8 @@ public class CassandraUidProvider implements UidProvider<UUID> {
 
     @Override
     public long lastUid(MailboxSession mailboxSession, Mailbox<UUID> mailbox) throws MailboxException {
-        ResultSet result = session.execute(select(MailboxCountersTable.NEXT_UID).from(MailboxCountersTable.TABLE_NAME).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
-        if (result.isExhausted()) {
-            return 0;
-        } else {
-            return result.one().getLong(MailboxCountersTable.NEXT_UID);
-        }
+        ResultSet result = session.execute(select(NEXT_UID).from(TABLE_NAME).where(eq(MAILBOX_ID, mailbox.getMailboxId())));
+        return result.isExhausted() ? 0 : result.one().getLong(NEXT_UID);
     }
 
 }

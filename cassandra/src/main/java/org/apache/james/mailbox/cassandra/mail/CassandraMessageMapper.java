@@ -119,12 +119,8 @@ public class CassandraMessageMapper implements MessageMapper<UUID> {
 
     @Override
     public long countMessagesInMailbox(Mailbox<UUID> mailbox) throws MailboxException {
-        ResultSet results = session.execute(select(MailboxCountersTable.COUNT).from(MailboxCountersTable.TABLE_NAME).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
-        if (results.isExhausted()) {
-            return 0;
-        } else {
-            return results.one().getLong(MailboxCountersTable.COUNT);
-        }
+        ResultSet results = session.execute(select(CassandraMailboxCountersTable.COUNT).from(CassandraMailboxCountersTable.TABLE_NAME).where(eq(CassandraMailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
+        return results.isExhausted() ? 0 : results.one().getLong(CassandraMailboxCountersTable.COUNT);
     }
 
     @Override
