@@ -99,10 +99,8 @@ public class CassandraMailboxMapper implements MailboxMapper<UUID> {
     public void save(Mailbox<UUID> mailbox) throws MailboxException {
         Preconditions.checkArgument(mailbox instanceof SimpleMailbox<?>);
         SimpleMailbox<UUID> simpleMailbox = (SimpleMailbox<UUID>) mailbox;
-        UUID id = simpleMailbox.getMailboxId();
-        if (id == null) {
-            id = UUID.randomUUID();
-            simpleMailbox.setMailboxId(id);
+        if (simpleMailbox.getMailboxId() == null) {
+            simpleMailbox.setMailboxId(UUID.randomUUID());
         }
         upsertMailbox(simpleMailbox);
     }
