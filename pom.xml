@@ -52,6 +52,7 @@
         <module>api</module>
         <module>caching</module>
         <module>hbase</module>
+        <module>cassandra</module>
         <module>jcr</module>
         <module>jpa</module>
         <module>lucene</module>
@@ -61,7 +62,6 @@
         <module>spring</module>
         <module>tool</module>
         <module>zoo-seq-provider</module>
-        <module>cassandra</module>
     </modules>
 
     <scm>
@@ -115,10 +115,12 @@
         <geronimo-activation-spec.version>1.1</geronimo-activation-spec.version>
         <geronimo-javamail-mail.version>1.8.3</geronimo-javamail-mail.version>
         <apache-mailet.version>2.5.0</apache-mailet.version>
-        <slf4j.version>1.7.2</slf4j.version>
+        <slf4j.version>1.7.7</slf4j.version>
         <junit.version>4.11</junit.version>
         <jasypt.version>1.9.0</jasypt.version>
         <guava.version>13.0</guava.version>
+        <cassandra-driver-core.version>2.0.1</cassandra-driver-core.version>
+        <cassandra-unit.version>2.0.2.1</cassandra-unit.version>
     </properties>
 
     <dependencyManagement>
@@ -192,7 +194,13 @@
                 <artifactId>apache-james-mailbox-hbase</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
+           <dependency>
+                <groupId>org.apache.james</groupId>
+                <artifactId>apache-james-mailbox-cassandra</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+           <dependency>
                 <groupId>org.apache.james</groupId>
                 <artifactId>apache-james-mailbox-tool</artifactId>
                 <version>${project.version}</version>
@@ -503,7 +511,6 @@
                 <artifactId>spring-orm</artifactId>
                 <version>${spring.version}</version>
             </dependency>
-
             <!--
                 END SPRING
             -->
@@ -515,6 +522,16 @@
                 <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase</artifactId>
                 <version>${hbase.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.codehaus.jackson</groupId>
+                        <artifactId>jackson-core-asl</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.jackson</groupId>
+                        <artifactId>jackson-mapper-asl</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.hbase</groupId>
@@ -537,7 +554,7 @@
             <!--
                 END HBASE/HADOOP
             -->
-        </dependencies>
+       </dependencies>
     </dependencyManagement>
 
     <build>
