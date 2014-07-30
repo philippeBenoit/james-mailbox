@@ -32,6 +32,7 @@ import java.util.List;
 import org.apache.james.mailbox.store.transaction.NonTransactionalMapper;
 import org.apache.james.mailbox.store.user.SubscriptionMapper;
 import org.apache.james.mailbox.store.user.model.Subscription;
+import org.apache.james.mailbox.store.user.model.impl.SimpleSubscription;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
@@ -74,15 +75,16 @@ public class CassandraSubscriptionMapper extends NonTransactionalMapper implemen
 
     @Override
     public synchronized void save(Subscription subscription) {
-        final String user = subscription.getUser();
-        final List<Subscription> subscriptions = subscriptionsByUser.get(user);
-        if (subscriptions == null) {
-            final List<Subscription> newSubscriptions = new ArrayList<Subscription>();
-            newSubscriptions.add(subscription);
-            subscriptionsByUser.put(user, newSubscriptions);
-        } else {
-            subscriptions.add(subscription);
+        Insert query = insertInto(TABLE_NAME).value(USER, subscription.getUser()).value(MAILBOX, subscription.getMailbox());
+        session.execute(query);
+    }
+
+    public List<SimpleSubscription> list() {
+        Builder<SimpleSubscription> result = ImmutableList.<SimpleSubscription> builder();
+        for (Row row : session.execute(select(FIELDS).from(TABLE_NAME))) {
+            result.add(new SimpleSubscription(row.getString(USER), row.getString(MAILBOX)));
         }
+        return result.build();
     }
 
     @Override
