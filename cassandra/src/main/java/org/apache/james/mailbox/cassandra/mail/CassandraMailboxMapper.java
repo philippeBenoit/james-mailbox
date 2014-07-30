@@ -84,10 +84,11 @@ public class CassandraMailboxMapper implements MailboxMapper<UUID> {
 
     @Override
     public List<Mailbox<UUID>> findMailboxWithPathLike(MailboxPath path) throws MailboxException {
-        final String regex = path.getName().replace("%", ".*");
+        final String regexWithUser = ".*" + path.getNamespace() + ".*" + path.getUser() + ".*" + path.getName() + ".*";
+        final String regexWithoutUser = ".*" + path.getNamespace() + ".*null.*" + path.getName() + ".*";
         Builder<Mailbox<UUID>> result = ImmutableList.<Mailbox<UUID>> builder();
         for (Row row : session.execute(select(FIELDS).from(TABLE_NAME))) {
-            if (row.getString(PATH).matches(regex)) {
+            if (row.getString(PATH).matches(regexWithUser) || row.getString(PATH).matches(regexWithoutUser)) {
                 result.add(mailbox(row));
             }
         }
@@ -120,8 +121,15 @@ public class CassandraMailboxMapper implements MailboxMapper<UUID> {
     }
 
     @Override
-    public boolean hasChildren(Mailbox<UUID> mailbox, char delimiter) throws MailboxException, MailboxNotFoundException {
-        return !findMailboxWithPathLike(new MailboxPath(mailbox.getNamespace(), mailbox.getUser(), mailbox.getName() + delimiter + "%")).isEmpty();
+    public boolean hasChildren(Mailbox<UUID> mailbox, char delimiter) {
+        final String regexWithUser = ".*" + mailbox.getNamespace() + ".*" + mailbox.getUser() + ".*" + mailbox.getName() + delimiter + ".*";
+        final String regexWithoutUser = ".*" + mailbox.getNamespace() + ".*null.*" + mailbox.getName() + delimiter + ".*";
+        for (Row row : session.execute(select(PATH).from(TABLE_NAME))) {
+            if (row.getString(PATH).matches(regexWithUser) || row.getString(PATH).matches(regexWithoutUser)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
