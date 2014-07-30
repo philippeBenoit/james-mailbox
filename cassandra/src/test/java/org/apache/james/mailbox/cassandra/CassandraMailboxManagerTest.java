@@ -18,63 +18,73 @@
  ****************************************************************/
 package org.apache.james.mailbox.cassandra;
 
-import java.util.UUID;
-
 import org.apache.james.mailbox.AbstractMailboxManagerTest;
 import org.apache.james.mailbox.MailboxSession;
-import org.apache.james.mailbox.acl.GroupMembershipResolver;
-import org.apache.james.mailbox.acl.MailboxACLResolver;
-import org.apache.james.mailbox.acl.SimpleGroupMembershipResolver;
-import org.apache.james.mailbox.acl.UnionMailboxACLResolver;
-import org.apache.james.mailbox.cassandra.mail.CassandraMailboxMapper;
-import org.apache.james.mailbox.cassandra.mail.CassandraMessageMapper;
 import org.apache.james.mailbox.cassandra.mail.CassandraModSeqProvider;
 import org.apache.james.mailbox.cassandra.mail.CassandraUidProvider;
-import org.apache.james.mailbox.cassandra.user.CassandraSubscriptionMapper;
+import org.apache.james.mailbox.cassandra.table.CassandraMailboxTable;
 import org.apache.james.mailbox.exception.BadCredentialsException;
 import org.apache.james.mailbox.exception.MailboxException;
-import org.apache.james.mailbox.store.MockAuthenticator;
-import org.apache.james.mailbox.store.StoreMailboxManager;
-import org.cassandraunit.CassandraCQLUnit;
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
+import org.apache.james.mailbox.store.JVMMailboxPathLocker;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.slf4j.LoggerFactory;
 
 /**
- * InMemoryMailboxManagerTest that extends the MailboxManagerTest.
+ * CassandraMailboxManagerTest that extends the StoreMailboxManagerTest.
+ * 
  */
 public class CassandraMailboxManagerTest extends AbstractMailboxManagerTest {
 
-    @Rule
-    public CassandraCQLUnit cassandraCQLUnit = new CassandraCQLUnit(new ClassPathCQLDataSet("mailbox.cql", "mailbox"));
+    private static final CassandraClusterSingleton CLUSTER = CassandraClusterSingleton.build();
 
+    /**
+     * Setup the mailboxManager.
+     * 
+     * @throws Exception
+     */
     @Before
     public void setup() throws Exception {
+        CLUSTER.ensureAllTables();
+        CLUSTER.clearAllTables();
         createMailboxManager();
     }
 
+    /**
+     * Close the system session and entityManagerFactory
+     * 
+     * @throws MailboxException
+     * @throws BadCredentialsException
+     */
     @After
-    public void tearDown() throws BadCredentialsException, MailboxException {
+    public void tearDown() throws Exception {
+        deleteAllMailboxes();
         MailboxSession session = getMailboxManager().createSystemSession("test", LoggerFactory.getLogger("Test"));
         session.close();
     }
 
+    /*
+     * (non-Javadoc)i deve
+     * 
+     * @see org.apache.james.mailbox.MailboxManagerTest#createMailboxManager()
+     */
     @Override
     protected void createMailboxManager() throws MailboxException {
-        CassandraMailboxMapper mailboxMapper = new CassandraMailboxMapper(cassandraCQLUnit.session);
-        CassandraMessageMapper messageMapper = new CassandraMessageMapper(cassandraCQLUnit.session, new CassandraUidProvider(cassandraCQLUnit.session), new CassandraModSeqProvider(cassandraCQLUnit.session));
-        CassandraSubscriptionMapper subscriptionMapper = new CassandraSubscriptionMapper();
-        CassandraMailboxSessionMapperFactory factory = new CassandraMailboxSessionMapperFactory(mailboxMapper, messageMapper, subscriptionMapper);
-        MailboxACLResolver aclResolver = new UnionMailboxACLResolver();
-        GroupMembershipResolver groupMembershipResolver = new SimpleGroupMembershipResolver();
+        final CassandraUidProvider uidProvider = new CassandraUidProvider(CLUSTER.getConf());
+        final CassandraModSeqProvider modSeqProvider = new CassandraModSeqProvider(CLUSTER.getConf());
+        final CassandraMailboxSessionMapperFactory mapperFactory = new CassandraMailboxSessionMapperFactory(uidProvider, modSeqProvider, (CassandraSession) CLUSTER.getConf());
 
-        StoreMailboxManager<UUID> mailboxManager = new StoreMailboxManager<UUID>(factory, new MockAuthenticator(), aclResolver, groupMembershipResolver);
-        mailboxManager.init();
+        final CassandraMailboxManager manager = new CassandraMailboxManager(mapperFactory, null, new JVMMailboxPathLocker());
+        manager.init();
 
-        setMailboxManager(mailboxManager);
+        setMailboxManager(manager);
 
+        deleteAllMailboxes();
     }
 
+    private void deleteAllMailboxes() throws BadCredentialsException, MailboxException {
+        MailboxSession session = getMailboxManager().createSystemSession("test", LoggerFactory.getLogger("Test"));
+        CLUSTER.clearTable(CassandraMailboxTable.TABLE_NAME);
+        session.close();
+    }
 }
