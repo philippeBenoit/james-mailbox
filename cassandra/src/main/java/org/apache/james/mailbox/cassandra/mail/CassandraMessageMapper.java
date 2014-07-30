@@ -112,6 +112,11 @@ public class CassandraMessageMapper implements MessageMapper<UUID> {
         this.modSeqProvider = modSeqProvider;
     }
 
+    public CassandraMessageMapper(Session session, CassandraUidProvider uidProvider, CassandraModSeqProvider modSeqProvider, MailboxSession mailboxSession) {
+        this(session, uidProvider, modSeqProvider);
+        this.mailboxSession = mailboxSession;
+    }
+
     @Override
     public long countMessagesInMailbox(Mailbox<UUID> mailbox) throws MailboxException {
         ResultSet results = session.execute(select(MailboxCountersTable.COUNT).from(MailboxCountersTable.TABLE_NAME).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
