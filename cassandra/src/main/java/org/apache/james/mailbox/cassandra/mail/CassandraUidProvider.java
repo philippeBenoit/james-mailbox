@@ -20,8 +20,8 @@
 package org.apache.james.mailbox.cassandra.mail;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.incr;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
 import static org.apache.james.mailbox.cassandra.table.CassandraMessageUidTable.MAILBOX_ID;
 import static org.apache.james.mailbox.cassandra.table.CassandraMessageUidTable.NEXT_UID;
@@ -39,6 +39,7 @@ import com.datastax.driver.core.Session;
 
 public class CassandraUidProvider implements UidProvider<UUID> {
     private Session session;
+    private final int applied = 0;
 
     public CassandraUidProvider(Session session) {
         this.session = session;
@@ -46,8 +47,17 @@ public class CassandraUidProvider implements UidProvider<UUID> {
 
     @Override
     public long nextUid(MailboxSession mailboxSession, Mailbox<UUID> mailbox) throws MailboxException {
-        session.execute(update(MailboxCountersTable.TABLE_NAME).with(incr(MailboxCountersTable.NEXT_UID)).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
-        return lastUid(mailboxSession, mailbox);
+        ResultSet resultat = null;
+        long lastUid = lastUid(mailboxSession, mailbox);
+        if (lastUid == 0) {
+            resultat = session.execute(update(TABLE_NAME).with(set(NEXT_UID, ++lastUid)).where(eq(MAILBOX_ID, mailbox.getMailboxId())));
+        } else {
+            do {
+                lastUid = lastUid(mailboxSession, mailbox);
+                resultat = session.execute(update(TABLE_NAME).onlyIf(eq(NEXT_UID, lastUid)).with(set(NEXT_UID, ++lastUid)).where(eq(MAILBOX_ID, mailbox.getMailboxId())));
+            } while (!resultat.one().getBool(applied));
+        }
+        return lastUid;
     }
 
     @Override
