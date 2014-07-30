@@ -19,11 +19,13 @@
 
 package org.apache.james.mailbox.cassandra.user;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
+import static org.apache.james.mailbox.cassandra.table.CassandraSubscriptionTable.FIELDS;
+import static org.apache.james.mailbox.cassandra.table.CassandraSubscriptionTable.MAILBOX;
+import static org.apache.james.mailbox.cassandra.table.CassandraSubscriptionTable.TABLE_NAME;
+import static org.apache.james.mailbox.cassandra.table.CassandraSubscriptionTable.USER;
 
 import java.util.List;
 

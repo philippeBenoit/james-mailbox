@@ -23,6 +23,9 @@ import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.incr;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.update;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxCountersTable.MAILBOX_ID;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxCountersTable.NEXT_MOD_SEQ;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxCountersTable.TABLE_NAME;
 
 import java.util.UUID;
 
@@ -44,7 +47,7 @@ public class CassandraModSeqProvider implements ModSeqProvider<UUID> {
 
     @Override
     public long nextModSeq(MailboxSession mailboxSession, Mailbox<UUID> mailbox) throws MailboxException {
-        session.execute(update(MailboxCountersTable.TABLE_NAME).with(incr(MailboxCountersTable.NEXT_MOD_SEQ)).where(eq(MailboxCountersTable.MAILBOX_ID, mailbox.getMailboxId())));
+        session.execute(update(TABLE_NAME).with(incr(NEXT_MOD_SEQ)).where(eq(MAILBOX_ID, mailbox.getMailboxId())));
         return highestModSeq(mailboxSession, mailbox);
     }
 

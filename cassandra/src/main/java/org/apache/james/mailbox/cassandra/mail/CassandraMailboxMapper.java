@@ -16,23 +16,24 @@
  * specific language governing permissions and limitations      *
  * under the License.                                           *
  ****************************************************************/
+
 package org.apache.james.mailbox.cassandra.mail;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.apache.james.mailbox.cassandra.mail.MailboxTable.ID;
-import static org.apache.james.mailbox.cassandra.mail.MailboxTable.TABLE_NAME;
-import static org.apache.james.mailbox.cassandra.mail.MailboxTable.NAME;
-import static org.apache.james.mailbox.cassandra.mail.MailboxTable.NAMESPACE;
-import static org.apache.james.mailbox.cassandra.mail.MailboxTable.PATH;
-import static org.apache.james.mailbox.cassandra.mail.MailboxTable.UIDVALIDITY;
-import static org.apache.james.mailbox.cassandra.mail.MailboxTable.USER;
+
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxTable.FIELDS;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxTable.ID;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxTable.NAME;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxTable.NAMESPACE;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxTable.PATH;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxTable.TABLE_NAME;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxTable.UIDVALIDITY;
+import static org.apache.james.mailbox.cassandra.table.CassandraMailboxTable.USER;
 
 import java.util.List;
 import java.util.UUID;
-
-import javax.inject.Inject;
 
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.exception.MailboxNotFoundException;
@@ -51,7 +52,6 @@ import com.google.common.collect.ImmutableList.Builder;
 
 public class CassandraMailboxMapper implements MailboxMapper<UUID> {
 
-    private static final String[] FIELDS = { ID, USER, NAMESPACE, UIDVALIDITY, NAME, PATH };
     private Session session;
 
     public CassandraMailboxMapper(Session session) {
