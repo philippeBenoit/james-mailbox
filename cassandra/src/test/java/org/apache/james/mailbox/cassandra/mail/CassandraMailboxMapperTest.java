@@ -142,7 +142,7 @@ public class CassandraMailboxMapperTest {
         LOG.info("save and mailboxFromResult");
         final List<Mailbox<UUID>> mailboxes = mapper.list();
         final SimpleMailbox<UUID> mlbx = mailboxList.get(mailboxList.size() / 2);
-        Mailbox<UUID> newValue = null;
+        Mailbox<UUID> newValue = mailboxes.get(0);
 
         for (Mailbox<UUID> mailbox : mailboxes) {
             if (mlbx.getMailboxId().equals(mailbox.getMailboxId())) {

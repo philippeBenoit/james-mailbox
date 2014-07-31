@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.util.UUID;
 
 import org.apache.james.mailbox.MailboxSession;
@@ -47,7 +46,7 @@ public class CassandraMailboxSessionMapperFactoryTest {
     private final static Logger LOG = LoggerFactory.getLogger(CassandraMailboxSessionMapperFactoryTest.class);
 
     @Before
-    public void beforeMethod() throws IOException {
+    public void beforeMethod() {
         CLUSTER.ensureAllTables();
         CLUSTER.clearAllTables();
     }

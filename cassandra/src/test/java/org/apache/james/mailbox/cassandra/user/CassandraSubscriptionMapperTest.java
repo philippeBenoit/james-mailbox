@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.james.mailbox.cassandra.CassandraClusterSingleton;
-import org.apache.james.mailbox.exception.SubscriptionException;
 import org.apache.james.mailbox.store.user.model.Subscription;
 import org.apache.james.mailbox.store.user.model.impl.SimpleSubscription;
 import org.junit.Before;
@@ -62,7 +61,7 @@ public class CassandraSubscriptionMapperTest {
         fillSubscriptionList();
     }
 
-    private static void fillSubscriptionList() throws SubscriptionException {
+    private static void fillSubscriptionList() {
         LOG.info("Creating subscription list");
         SimpleSubscription subscription;
         String user, mailbox;
@@ -133,7 +132,6 @@ public class CassandraSubscriptionMapperTest {
     @Test
     public void testFindSubscriptionsForUser() throws Exception {
         LOG.info("findSubscriptionsForUser");
-        final SimpleSubscription fake1 = new SimpleSubscription("user1", "FAKEBOX");
         final SimpleSubscription fake2 = new SimpleSubscription("fakeUser", "INBOX");
         for (String user : subscriptionList.keySet()) {
             LOG.info("Searching for all subscriptions for user: " + user);
