@@ -65,14 +65,15 @@
             <type>test-jar</type>
         </dependency>
         <dependency>
-	  <groupId>com.datastax.cassandra</groupId>
-	  <artifactId>cassandra-driver-core</artifactId>
-	  <version>${cassandra-driver-core.version}</version>
-	</dependency>
-	<dependency>
+	        <groupId>com.datastax.cassandra</groupId>
+	        <artifactId>cassandra-driver-core</artifactId>
+	        <version>${cassandra-driver-core.version}</version>
+	    </dependency>
+	    <dependency>
     	    <groupId>org.cassandraunit</groupId>
-   	    <artifactId>cassandra-unit</artifactId>
+   	        <artifactId>cassandra-unit</artifactId>
             <version>${cassandra-unit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
