@@ -53,12 +53,15 @@ public final class CassandraClusterSingleton {
     }
 
     private CassandraClusterSingleton() throws RuntimeException {
-        try {
+       try {
             EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+            // Let Cassandra initialization before creating
+            // the session. Solve very fast computer tests run.
+            Thread.sleep(2000);
+            this.session = new CassandraSession(CLUSTER_IP, CLUSTER_PORT_TEST, KEYSPACE_NAME, DEFAULT_REPLICATION_FACTOR);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        this.session = new CassandraSession(CLUSTER_IP, CLUSTER_PORT_TEST, KEYSPACE_NAME, DEFAULT_REPLICATION_FACTOR);
     }
 
     /**
