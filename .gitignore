@@ -1,0 +1,10 @@
+.idea/
+target
+*.iml
+derby.log
+var
+log
+.project
+.class
+.classpath
+.settings
