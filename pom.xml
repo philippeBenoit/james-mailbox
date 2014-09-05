@@ -56,6 +56,7 @@
         <module>jcr</module>
         <module>jpa</module>
         <module>lucene</module>
+        <module>elasticsearch</module>
         <module>maildir</module>
         <module>memory</module>
         <module>store</module>
@@ -109,6 +110,8 @@
         <jcr.version>2.0</jcr.version>
         <jackrabbit.version>2.5.2</jackrabbit.version>
         <lucene.version>3.6.0</lucene.version>
+        <elasticsearch.version>1.2.1</elasticsearch.version>
+        <elasticsearch-test.version>1.2.1</elasticsearch-test.version>
         <xercesImpl.version>2.9.1</xercesImpl.version>
         <xml-apis.version>1.3.04</xml-apis.version>
         <geronimo-annotation-spec.version>1.1.1</geronimo-annotation-spec.version>
@@ -166,6 +169,18 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.james</groupId>
+                <artifactId>apache-james-mailbox-elasticsearch</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.james</groupId>
+                <artifactId>apache-james-mailbox-elasticsearch</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.james</groupId>
                 <artifactId>apache-james-mailbox-store</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -208,23 +223,8 @@
             <!--
                 END Modules
             -->
-            <dependency>
-                <groupId>org.apache.lucene</groupId>
-                <artifactId>lucene-core</artifactId>
-                <version>${lucene.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.lucene</groupId>
-                <artifactId>lucene-analyzers</artifactId>
-                <version>${lucene.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.lucene</groupId>
-                <artifactId>lucene-smartcn</artifactId>
-                <version>${lucene.version}</version>
-            </dependency>
-
-            <!--
+                    
+	    <!--
                 START Mail
             -->
             <dependency>
