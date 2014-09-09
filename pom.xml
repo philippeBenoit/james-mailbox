@@ -56,7 +56,6 @@
         <module>jcr</module>
         <module>jpa</module>
         <module>lucene</module>
-        <module>elasticsearch</module>
         <module>maildir</module>
         <module>memory</module>
         <module>store</module>
@@ -166,11 +165,6 @@
                 <version>${project.version}</version>
                 <type>test-jar</type>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.james</groupId>
-                <artifactId>apache-james-mailbox-elasticsearch</artifactId>
-                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.james</groupId>
