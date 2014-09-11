@@ -83,7 +83,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.NumericField;
+import org.apache.lucene.document.LongField;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -105,6 +105,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
+import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.Version;
 
 /**
@@ -300,36 +301,36 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
 
     private boolean suffixMatch = false;
     
-    private final static SortField UID_SORT = new SortField(UID_FIELD, SortField.LONG);
-    private final static SortField UID_SORT_REVERSE = new SortField(UID_FIELD, SortField.LONG, true);
+    private final static SortField UID_SORT = new SortField(UID_FIELD, SortField.Type.LONG);
+    private final static SortField UID_SORT_REVERSE = new SortField(UID_FIELD, SortField.Type.LONG, true);
 
-    private final static SortField SIZE_SORT = new SortField(SIZE_FIELD, SortField.LONG);
-    private final static SortField SIZE_SORT_REVERSE = new SortField(SIZE_FIELD, SortField.LONG, true);
+    private final static SortField SIZE_SORT = new SortField(SIZE_FIELD, SortField.Type.LONG);
+    private final static SortField SIZE_SORT_REVERSE = new SortField(SIZE_FIELD, SortField.Type.LONG, true);
 
-    private final static SortField FIRST_CC_MAILBOX_SORT = new SortField(FIRST_CC_MAILBOX_NAME_FIELD, SortField.STRING);
-    private final static SortField FIRST_CC_MAILBOX_SORT_REVERSE = new SortField(FIRST_CC_MAILBOX_NAME_FIELD, SortField.STRING, true);
+    private final static SortField FIRST_CC_MAILBOX_SORT = new SortField(FIRST_CC_MAILBOX_NAME_FIELD, SortField.Type.STRING);
+    private final static SortField FIRST_CC_MAILBOX_SORT_REVERSE = new SortField(FIRST_CC_MAILBOX_NAME_FIELD, SortField.Type.STRING, true);
 
-    private final static SortField FIRST_TO_MAILBOX_SORT = new SortField(FIRST_TO_MAILBOX_NAME_FIELD, SortField.STRING);
-    private final static SortField FIRST_TO_MAILBOX_SORT_REVERSE = new SortField(FIRST_TO_MAILBOX_NAME_FIELD, SortField.STRING, true);
+    private final static SortField FIRST_TO_MAILBOX_SORT = new SortField(FIRST_TO_MAILBOX_NAME_FIELD, SortField.Type.STRING);
+    private final static SortField FIRST_TO_MAILBOX_SORT_REVERSE = new SortField(FIRST_TO_MAILBOX_NAME_FIELD, SortField.Type.STRING, true);
 
-    private final static SortField FIRST_FROM_MAILBOX_SORT = new SortField(FIRST_FROM_MAILBOX_NAME_FIELD, SortField.STRING);
-    private final static SortField FIRST_FROM_MAILBOX_SORT_REVERSE = new SortField(FIRST_FROM_MAILBOX_NAME_FIELD, SortField.STRING, true);
+    private final static SortField FIRST_FROM_MAILBOX_SORT = new SortField(FIRST_FROM_MAILBOX_NAME_FIELD, SortField.Type.STRING);
+    private final static SortField FIRST_FROM_MAILBOX_SORT_REVERSE = new SortField(FIRST_FROM_MAILBOX_NAME_FIELD, SortField.Type.STRING, true);
 
     
-    private final static SortField ARRIVAL_MAILBOX_SORT = new SortField(INTERNAL_DATE_FIELD_MILLISECOND_RESOLUTION, SortField.LONG);
-    private final static SortField ARRIVAL_MAILBOX_SORT_REVERSE = new SortField(INTERNAL_DATE_FIELD_MILLISECOND_RESOLUTION, SortField.LONG, true);
+    private final static SortField ARRIVAL_MAILBOX_SORT = new SortField(INTERNAL_DATE_FIELD_MILLISECOND_RESOLUTION, SortField.Type.LONG);
+    private final static SortField ARRIVAL_MAILBOX_SORT_REVERSE = new SortField(INTERNAL_DATE_FIELD_MILLISECOND_RESOLUTION, SortField.Type.LONG, true);
 
-    private final static SortField BASE_SUBJECT_SORT = new SortField(BASE_SUBJECT_FIELD, SortField.STRING);
-    private final static SortField BASE_SUBJECT_SORT_REVERSE = new SortField(BASE_SUBJECT_FIELD, SortField.STRING, true);
+    private final static SortField BASE_SUBJECT_SORT = new SortField(BASE_SUBJECT_FIELD, SortField.Type.STRING);
+    private final static SortField BASE_SUBJECT_SORT_REVERSE = new SortField(BASE_SUBJECT_FIELD, SortField.Type.STRING, true);
     
-    private final static SortField SENT_DATE_SORT = new SortField(SENT_DATE_SORT_FIELD_MILLISECOND_RESOLUTION, SortField.LONG);
-    private final static SortField SENT_DATE_SORT_REVERSE = new SortField(SENT_DATE_SORT_FIELD_MILLISECOND_RESOLUTION, SortField.LONG, true);
+    private final static SortField SENT_DATE_SORT = new SortField(SENT_DATE_SORT_FIELD_MILLISECOND_RESOLUTION, SortField.Type.LONG);
+    private final static SortField SENT_DATE_SORT_REVERSE = new SortField(SENT_DATE_SORT_FIELD_MILLISECOND_RESOLUTION, SortField.Type.LONG, true);
     
-    private final static SortField FIRST_TO_MAILBOX_DISPLAY_SORT = new SortField(FIRST_TO_MAILBOX_DISPLAY_FIELD, SortField.STRING);
-    private final static SortField FIRST_TO_MAILBOX_DISPLAY_SORT_REVERSE = new SortField(FIRST_TO_MAILBOX_DISPLAY_FIELD, SortField.STRING, true);
+    private final static SortField FIRST_TO_MAILBOX_DISPLAY_SORT = new SortField(FIRST_TO_MAILBOX_DISPLAY_FIELD, SortField.Type.STRING);
+    private final static SortField FIRST_TO_MAILBOX_DISPLAY_SORT_REVERSE = new SortField(FIRST_TO_MAILBOX_DISPLAY_FIELD, SortField.Type.STRING, true);
 
-    private final static SortField FIRST_FROM_MAILBOX_DISPLAY_SORT = new SortField(FIRST_FROM_MAILBOX_DISPLAY_FIELD, SortField.STRING);
-    private final static SortField FIRST_FROM_MAILBOX_DISPLAY_SORT_REVERSE = new SortField(FIRST_FROM_MAILBOX_DISPLAY_FIELD, SortField.STRING, true);
+    private final static SortField FIRST_FROM_MAILBOX_DISPLAY_SORT = new SortField(FIRST_FROM_MAILBOX_DISPLAY_FIELD, SortField.Type.STRING);
+    private final static SortField FIRST_FROM_MAILBOX_DISPLAY_SORT_REVERSE = new SortField(FIRST_FROM_MAILBOX_DISPLAY_FIELD, SortField.Type.STRING, true);
 
     
     public LuceneMessageSearchIndex(MessageMapperFactory<Id> factory, Directory directory) throws CorruptIndexException, LockObtainFailedException, IOException {
@@ -428,7 +429,7 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         } finally {
             if (searcher != null) {
                 try {
-                    searcher.close();
+                    searcher.getIndexReader().close();
                 } catch (IOException e) {
                     // ignore on close
                 }
@@ -450,7 +451,7 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         final Document doc = new Document();
         // TODO: Better handling
         doc.add(new Field(MAILBOX_ID_FIELD, membership.getMailboxId().toString().toUpperCase(Locale.ENGLISH), Store.YES, Index.NOT_ANALYZED));
-        doc.add(new NumericField(UID_FIELD,Store.YES, true).setLongValue(membership.getUid()));
+        doc.add(new LongField(UID_FIELD, membership.getUid(), Store.YES));
         
         // create an unqiue key for the document which can be used later on updates to find the document
         doc.add(new Field(ID_FIELD, membership.getMailboxId().toString().toUpperCase(Locale.ENGLISH) +"-" + Long.toString(membership.getUid()), Store.YES, Index.NOT_ANALYZED));
@@ -463,7 +464,7 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         doc.add(new Field(INTERNAL_DATE_FIELD_SECOND_RESOLUTION, DateTools.dateToString(membership.getInternalDate(), DateTools.Resolution.SECOND), Store.NO, Index.NOT_ANALYZED));
         doc.add(new Field(INTERNAL_DATE_FIELD_MILLISECOND_RESOLUTION, DateTools.dateToString(membership.getInternalDate(), DateTools.Resolution.MILLISECOND), Store.NO, Index.NOT_ANALYZED));
 
-        doc.add(new NumericField(SIZE_FIELD,Store.YES, true).setLongValue(membership.getFullContentOctets()));
+        doc.add(new LongField(SIZE_FIELD, membership.getFullContentOctets(), Store.YES));
 
         // content handler which will index the headers and the body of the message
         SimpleContentHandler handler = new SimpleContentHandler() {
@@ -799,9 +800,9 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         case ON:
             return new TermQuery(new Term(field ,value));
         case BEFORE: 
-            return new TermRangeQuery(field, DateTools.dateToString(MIN_DATE, dRes), value, true, false);
+            return new TermRangeQuery(field, new BytesRef(DateTools.dateToString(MIN_DATE, dRes)), new BytesRef(value), true, false);
         case AFTER: 
-            return new TermRangeQuery(field, value, DateTools.dateToString(MAX_DATE, dRes), false, true);
+            return new TermRangeQuery(field, new BytesRef(value), new BytesRef(DateTools.dateToString(MAX_DATE, dRes)), false, true);
         default:
             throw new UnsupportedSearchException();
         }
@@ -929,7 +930,7 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         } finally {
             if (searcher != null) {
                 try {
-                    searcher.close();
+                    searcher.getIndexReader().close();
                 } catch (IOException e) {
                     // ignore on close
                 }
@@ -1238,7 +1239,7 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         Document doc = new Document();
         doc.add(new Field(ID_FIELD, "flags-" + message.getMailboxId().toString() +"-" + Long.toString(message.getUid()), Store.YES, Index.NOT_ANALYZED));
         doc.add(new Field(MAILBOX_ID_FIELD, message.getMailboxId().toString(), Store.YES, Index.NOT_ANALYZED));
-        doc.add(new NumericField(UID_FIELD,Store.YES, true).setLongValue(message.getUid()));
+        doc.add(new LongField(UID_FIELD, message.getUid(), Store.YES));
         
         indexFlags(doc, message.createFlags());
         return doc;
