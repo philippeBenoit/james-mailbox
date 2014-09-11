@@ -299,8 +299,8 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
     private final IndexWriter writer;
     
     private int maxQueryResults = DEFAULT_MAX_QUERY_RESULTS;
-
     private boolean suffixMatch = false;
+    
     
     private final static SortField UID_SORT = new SortField(UID_FIELD, SortField.Type.LONG);
     private final static SortField UID_SORT_REVERSE = new SortField(UID_FIELD, SortField.Type.LONG, true);
@@ -1171,7 +1171,13 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
     public void add(MailboxSession session, Mailbox<Id> mailbox, Message<Id> membership) throws MailboxException {
         Document doc = createMessageDocument(session, membership);
         Document flagsDoc = createFlagsDocument(membership);
-
+        try {
+            ((StrictImapSearchAnalyzer)writer.getConfig().getAnalyzer()).getReader().reset();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+        
         try {
             writer.addDocument(doc);
             writer.addDocument(flagsDoc);
@@ -1179,6 +1185,23 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
             throw new MailboxException("Unable to add message to index", e);
         } catch (IOException e) {
             throw new MailboxException("Unable to add message to index", e);
+        } finally {
+            try {
+                Analyzer analyzer = writer.getConfig().getAnalyzer();
+                ((StrictImapSearchAnalyzer)analyzer).getReader().close();
+                writer.getConfig().getAnalyzer().close();
+            /*    
+                ((LenientImapSearchAnalyzer)analyzer).getComponent().getTokenizer().end();
+                ((LenientImapSearchAnalyzer)analyzer).getComponent().getTokenizer().close();
+
+                ((LenientImapSearchAnalyzer)analyzer).getComponent().getTokenStream().end();
+                ((LenientImapSearchAnalyzer)analyzer).getComponent().getTokenStream().close();
+              */  
+                writer.getDirectory().close();
+                writer.close();
+            } catch (Exception e) {
+                // Do nothing...
+            }
         }
     }
 
@@ -1186,8 +1209,9 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
      * @see org.apache.james.mailbox.store.search.ListeningMessageSearchIndex#update(org.apache.james.mailbox.MailboxSession, org.apache.james.mailbox.store.mail.model.Mailbox, org.apache.james.mailbox.model.MessageRange, javax.mail.Flags)
      */
     public void update(MailboxSession session, Mailbox<Id> mailbox, MessageRange range, Flags f) throws MailboxException {
+        IndexSearcher searcher = null;
         try {
-            IndexSearcher searcher = new IndexSearcher(IndexReader.open(writer, true));
+            searcher = new IndexSearcher(IndexReader.open(writer, true));
             BooleanQuery query = new BooleanQuery();
             query.add(new TermQuery(new Term(MAILBOX_ID_FIELD, mailbox.getMailboxId().toString())), BooleanClause.Occur.MUST);
             query.add(createQuery(range), BooleanClause.Occur.MUST);
@@ -1208,9 +1232,14 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
             }
         } catch (IOException e) {
             throw new MailboxException("Unable to add messages in index", e);
-
+        }  finally {
+            try {
+                searcher.getIndexReader().close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
-        
     }
 
     /**
