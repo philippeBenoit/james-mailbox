@@ -1,4 +1,4 @@
-package org.apache.james.mailbox.elasticsearch.search;
+package org.apache.james.mailbox.store.search;
 
 import java.util.Date;
 

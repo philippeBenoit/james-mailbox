@@ -1,4 +1,4 @@
-package org.apache.james.mailbox.elasticsearch.search;
+package org.apache.james.mailbox.store.search;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
@@ -15,7 +15,6 @@ import org.apache.james.mailbox.model.SearchQuery;
 import org.apache.james.mailbox.store.mail.MessageMapperFactory;
 import org.apache.james.mailbox.store.mail.model.Mailbox;
 import org.apache.james.mailbox.store.mail.model.Message;
-import org.apache.james.mailbox.store.search.ListeningMessageSearchIndex;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 

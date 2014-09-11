@@ -86,5 +86,17 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>${elasticsearch.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tlrx</groupId>
+            <artifactId>elasticsearch-test</artifactId>
+            <version>${elasticsearch-test.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+     </dependencies>
 </project>
