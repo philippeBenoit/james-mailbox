@@ -83,6 +83,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.LongField;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -102,8 +103,10 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TermRangeQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.WildcardQuery;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
+import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.Version;
 
 /**
@@ -441,7 +444,7 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         final Document doc = new Document();
         // TODO: Better handling
         doc.add(new Field(MAILBOX_ID_FIELD, membership.getMailboxId().toString().toUpperCase(Locale.ENGLISH), Store.YES, Index.NOT_ANALYZED));
-        doc.add(new NumericField(UID_FIELD,Store.YES, true).setLongValue(membership.getUid()));
+        doc.add(new LongField(UID_FIELD, membership.getUid(), Store.YES));
         
         // create an unqiue key for the document which can be used later on updates to find the document
         doc.add(new Field(ID_FIELD, membership.getMailboxId().toString().toUpperCase(Locale.ENGLISH) +"-" + Long.toString(membership.getUid()), Store.YES, Index.NOT_ANALYZED));
@@ -454,7 +457,7 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         doc.add(new Field(INTERNAL_DATE_FIELD_SECOND_RESOLUTION, DateTools.dateToString(membership.getInternalDate(), DateTools.Resolution.SECOND), Store.NO, Index.NOT_ANALYZED));
         doc.add(new Field(INTERNAL_DATE_FIELD_MILLISECOND_RESOLUTION, DateTools.dateToString(membership.getInternalDate(), DateTools.Resolution.MILLISECOND), Store.NO, Index.NOT_ANALYZED));
 
-        doc.add(new NumericField(SIZE_FIELD,Store.YES, true).setLongValue(membership.getFullContentOctets()));
+        doc.add(new LongField(SIZE_FIELD, membership.getFullContentOctets(), Store.YES));
 
         // content handler which will index the headers and the body of the message
         SimpleContentHandler handler = new SimpleContentHandler() {
@@ -486,7 +489,6 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
                             Calendar cal = getGMT();
                             cal.set(dateTime.getYear(), dateTime.getMonth() - 1, dateTime.getDay(), dateTime.getHour(), dateTime.getMinute(), dateTime.getSecond());
                             sentDate =  cal.getTime();
-                            
                         } catch (org.apache.james.mime4j.field.datetime.parser.ParseException e) {
                             session.getLog().debug("Unable to parse Date header for proper indexing", e);
                             // This should never happen anyway fallback to the already parsed field
@@ -790,9 +792,9 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         case ON:
             return new TermQuery(new Term(field ,value));
         case BEFORE: 
-            return new TermRangeQuery(field, DateTools.dateToString(MIN_DATE, dRes), value, true, false);
+            return new TermRangeQuery(field, new BytesRef(DateTools.dateToString(MIN_DATE, dRes)), new BytesRef(value), true, false);
         case AFTER: 
-            return new TermRangeQuery(field, value, DateTools.dateToString(MAX_DATE, dRes), false, true);
+            return new TermRangeQuery(field, new BytesRef(value), new BytesRef(DateTools.dateToString(MAX_DATE, dRes)), false, true);
         default:
             throw new UnsupportedSearchException();
         }
@@ -917,7 +919,7 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
             return createUidQuery((UidCriterion) SearchQuery.uid(nRanges));
         } catch (IOException e) {
             throw new MailboxException("Unable to search mailbox " + mailbox, e);
-        } 
+        }
     }
     
     private Sort createSort(List<SearchQuery.Sort> sorts) {
@@ -1221,7 +1223,7 @@ public class LuceneMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id
         Document doc = new Document();
         doc.add(new Field(ID_FIELD, "flags-" + message.getMailboxId().toString() +"-" + Long.toString(message.getUid()), Store.YES, Index.NOT_ANALYZED));
         doc.add(new Field(MAILBOX_ID_FIELD, message.getMailboxId().toString(), Store.YES, Index.NOT_ANALYZED));
-        doc.add(new NumericField(UID_FIELD,Store.YES, true).setLongValue(message.getUid()));
+        doc.add(new LongField(UID_FIELD, message.getUid(), Store.YES));
         
         indexFlags(doc, message.createFlags());
         return doc;

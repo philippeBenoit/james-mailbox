@@ -23,6 +23,7 @@ import java.io.Reader;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.cn.smart.SentenceTokenizer;
 import org.apache.lucene.analysis.ngram.NGramTokenFilter;
+import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.util.Version;
 
 /**
@@ -40,6 +41,9 @@ public final class StrictImapSearchAnalyzer extends Analyzer {
 
     private final int minTokenLength;
     private final int maxTokenLength;
+    private final Version VERSION = Version.LUCENE_48;
+    private Reader reader;
+
     
     public StrictImapSearchAnalyzer() {
         this(3, 40);
@@ -50,10 +54,13 @@ public final class StrictImapSearchAnalyzer extends Analyzer {
     }
     @Override
     protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
+        this.reader = reader;
         return new TokenStreamComponents(
-                null,
-                new NGramTokenFilter(Version.LUCENE_48,
-                        new UpperCaseFilter(new SentenceTokenizer(reader)), minTokenLength, maxTokenLength));
+                new StandardTokenizer(VERSION, reader),
+                new NGramTokenFilter(VERSION, new UpperCaseFilter(new SentenceTokenizer(reader)), minTokenLength, maxTokenLength));
     }
    
+    public Reader getReader() {
+        return this.reader;
+    }
 }

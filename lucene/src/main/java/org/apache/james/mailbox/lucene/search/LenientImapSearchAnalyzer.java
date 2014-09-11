@@ -23,6 +23,7 @@ import java.io.Reader;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.analysis.shingle.ShingleFilter;
+import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.util.Version;
 
 /**
@@ -33,8 +34,9 @@ import org.apache.lucene.util.Version;
 public final class LenientImapSearchAnalyzer extends Analyzer {
 
     public final static int DEFAULT_MAX_TOKEN_LENGTH = 4;
-    
     private final int maxTokenLength;
+    private final Version VERSION = Version.LUCENE_48;
+    private TokenStreamComponents tokenStream;
     
 
     public LenientImapSearchAnalyzer(int maxTokenLength) {
@@ -47,10 +49,15 @@ public final class LenientImapSearchAnalyzer extends Analyzer {
 
     @Override
     protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
-        return new TokenStreamComponents(
-                null,
+        this.tokenStream = new TokenStreamComponents(
+                new StandardTokenizer(VERSION, reader),
                 new ShingleFilter(
                         new UpperCaseFilter(
-                                new WhitespaceTokenizer(Version.LUCENE_48, reader)), 2, maxTokenLength));
+                                new WhitespaceTokenizer(VERSION, reader)), 2, maxTokenLength));
+        return this.tokenStream;
+    }
+    
+    public TokenStreamComponents getComponent() {
+        return this.tokenStream;
     }
 }
