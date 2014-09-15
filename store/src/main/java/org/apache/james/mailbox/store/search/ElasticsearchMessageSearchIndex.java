@@ -4,8 +4,11 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.mail.Flags;
+import javax.mail.Flags.Flag;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.james.mailbox.MailboxSession;
@@ -16,26 +19,71 @@ import org.apache.james.mailbox.store.mail.MessageMapperFactory;
 import org.apache.james.mailbox.store.mail.model.Mailbox;
 import org.apache.james.mailbox.store.mail.model.Message;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.index.Index;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 
-public class ElasticsearchListeningMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id> {
+public class ElasticsearchMessageSearchIndex<Id> extends ListeningMessageSearchIndex<Id> {
     
     private Client client;
     private final String INDEX_NAME = "messages";
     private final String TYPE_NAME = "message";
 
+    public static interface Field {
+        /**
+         * Contain the unique id of the message in {@link Index}
+         */
+        public final static String ID = "id";
 
-    public ElasticsearchListeningMessageSearchIndex(Client client) {
+        /**
+         * Contain uid of the {@link Message}
+         */
+        public final static String UID = "uid";
+
+        /**
+         * Contain the {@link Flags} of the {@link Message}
+         */
+        public final static String FLAGS = "flags";
+
+        /**
+         * Contain the size of the {@link Message}
+         */
+        public final static String SIZE = "size";
+
+        /**
+         * Contain the body of the {@link Message}
+         */
+        public final static String BODY = "body";
+
+        /**
+         * Contain the FROM-Address of the {@link Message}
+         */
+        public final static String FROM = "from";
+
+        /**
+         * Contain the internalDate of the message with YEAR-Resolution
+         */
+        public final static String INTERNAL_DATE = "internalDate";
+
+        /**
+         * Contain the id of the {@link Mailbox}
+         */
+        public final static String MAILBOX_ID = "mailboxIsd";
+    }
+
+    public ElasticsearchMessageSearchIndex(Client client) {
         super(null);
         this.client = client;
     }
     
-    public ElasticsearchListeningMessageSearchIndex(MessageMapperFactory<Id> factory, Client client) {
+    public ElasticsearchMessageSearchIndex(MessageMapperFactory<Id> factory, Client client) {
         super(factory);
         this.client = client;
     }
 
     public Iterator<Long> search(MailboxSession session, Mailbox<Id> mailbox, SearchQuery searchQuery) throws MailboxException {
+        Set<Long> uids = new LinkedHashSet<Long>();
+        // return uids.iterator();
         throw new NotImplementedException();
     }
 
@@ -45,8 +93,11 @@ public class ElasticsearchListeningMessageSearchIndex<Id> extends ListeningMessa
             client.prepareIndex(INDEX_NAME, TYPE_NAME, message.getUid() + "")
                     .setSource(jsonBuilder()
                         .startObject()
-                            .field("date", message.getInternalDate())
-                            .field("id", message.getUid())
+                            .field(Field.INTERNAL_DATE, message.getInternalDate())
+                            .field(Field.ID, message.getUid())
+                            .field(Field.SIZE, message.getFullContentOctets())
+                            .field(Field.FLAGS, message.createFlags().getSystemFlags().toString())
+               //             .field("MAILBOX_ID", mailbox.getMailboxId())
                         .endObject()                
                     )
                     .execute()
@@ -67,14 +118,14 @@ public class ElasticsearchListeningMessageSearchIndex<Id> extends ListeningMessa
                     .actionGet();
                 break;
             case FROM:
-                query = new RangeQueryBuilder("id").gte(range.getUidFrom());
+                query = new RangeQueryBuilder(Field.ID).gte(range.getUidFrom());
                 client.prepareDeleteByQuery(INDEX_NAME).setTypes(TYPE_NAME)
                     .setQuery(query)
                     .execute()
                     .actionGet();
                 break;
             case RANGE:
-                query = new RangeQueryBuilder("id").to(range.getUidTo()).from(range.getUidFrom());
+                query = new RangeQueryBuilder(Field.ID).to(range.getUidTo()).from(range.getUidFrom());
                 client.prepareDeleteByQuery(INDEX_NAME).setTypes(TYPE_NAME)
                     .setQuery(query)
                     .execute()
@@ -90,6 +141,7 @@ public class ElasticsearchListeningMessageSearchIndex<Id> extends ListeningMessa
 
     @Override
     public void update(MailboxSession session, Mailbox<Id> mailbox, MessageRange range, Flags flags) throws MailboxException {
+        QueryBuilder query;
         throw new NotImplementedException();
     }
 
