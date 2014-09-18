@@ -103,7 +103,7 @@ public class ElasticsearchMessageSearchIndex<Id> extends ListeningMessageSearchI
                     .execute()
                     .actionGet();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new MailboxException();
         }
     }
 
