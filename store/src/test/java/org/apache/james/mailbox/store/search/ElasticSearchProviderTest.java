@@ -8,6 +8,7 @@ import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.mock.MockMailboxSession;
 import org.apache.james.mailbox.model.MessageRange;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,22 +31,23 @@ public class ElasticSearchProviderTest {
         searchIndex = new ElasticsearchMessageSearchIndex(esSetup.client());
     }
 
-    private void waitESUpdate() throws InterruptedException {
-        Thread.sleep(2000);
+    private void forceESUpdate() throws InterruptedException {
+        esSetup.client().admin().indices().refresh(new RefreshRequest(INDEX_NAME));
+        Thread.sleep(200);
     }
 
     @Test
     public void testAdd() throws ElasticsearchException, MailboxException, InterruptedException {
         assertEquals(Long.valueOf(0), esSetup.countAll());
         searchIndex.add(mailboxSession, null, new SimpleMessageMock(0));
-        waitESUpdate();
+        forceESUpdate();
         assertEquals(Long.valueOf(1), esSetup.countAll());
     }
 
     private void addTwoMessage() throws MailboxException, InterruptedException {
         searchIndex.add(mailboxSession, null, new SimpleMessageMock(0));
         searchIndex.add(mailboxSession, null, new SimpleMessageMock(1));
-        waitESUpdate();
+        forceESUpdate();
         assertEquals(Long.valueOf(2), esSetup.countAll());
     }
 
@@ -53,7 +55,7 @@ public class ElasticSearchProviderTest {
     public void testDeleteAll() throws MailboxException, InterruptedException {
         addTwoMessage();
         searchIndex.delete(mailboxSession, null, MessageRange.all());
-        waitESUpdate();
+        forceESUpdate();
         assertEquals(Long.valueOf(0), esSetup.countAll());
     }
 
@@ -61,7 +63,7 @@ public class ElasticSearchProviderTest {
     public void testDeleteOne() throws MailboxException, InterruptedException {
         addTwoMessage();
         searchIndex.delete(mailboxSession, null, MessageRange.one(1));
-        waitESUpdate();
+        forceESUpdate();
         assertEquals(Long.valueOf(1), esSetup.countAll());
     }
 
@@ -69,7 +71,7 @@ public class ElasticSearchProviderTest {
         for (int i = 0; i < 10; i++) {
             searchIndex.add(mailboxSession, null, new SimpleMessageMock(i));
         }
-        waitESUpdate();
+        forceESUpdate();
         assertEquals(Long.valueOf(10), esSetup.countAll());
     }
     
