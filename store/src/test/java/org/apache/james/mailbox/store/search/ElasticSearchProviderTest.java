@@ -20,6 +20,7 @@ public class ElasticSearchProviderTest {
     private final String INDEX_NAME = "messages";
     private ElasticsearchMessageSearchIndex searchIndex;
     private MockMailboxSession mailboxSession = new MockMailboxSession("test");
+    private SimpleMailboxMock mailbox = new SimpleMailboxMock();
 
     @Before
     public void setUp() throws Exception {
@@ -39,14 +40,14 @@ public class ElasticSearchProviderTest {
     @Test
     public void testAdd() throws ElasticsearchException, MailboxException, InterruptedException {
         assertEquals(Long.valueOf(0), esSetup.countAll());
-        searchIndex.add(mailboxSession, null, new SimpleMessageMock(0));
+        searchIndex.add(mailboxSession, mailbox, new SimpleMessageMock(0));
         forceESUpdate();
         assertEquals(Long.valueOf(1), esSetup.countAll());
     }
 
     private void addTwoMessage() throws MailboxException, InterruptedException {
-        searchIndex.add(mailboxSession, null, new SimpleMessageMock(0));
-        searchIndex.add(mailboxSession, null, new SimpleMessageMock(1));
+        searchIndex.add(mailboxSession, mailbox, new SimpleMessageMock(0));
+        searchIndex.add(mailboxSession, mailbox, new SimpleMessageMock(1));
         forceESUpdate();
         assertEquals(Long.valueOf(2), esSetup.countAll());
     }
@@ -54,7 +55,7 @@ public class ElasticSearchProviderTest {
     @Test
     public void testDeleteAll() throws MailboxException, InterruptedException {
         addTwoMessage();
-        searchIndex.delete(mailboxSession, null, MessageRange.all());
+        searchIndex.delete(mailboxSession, mailbox, MessageRange.all());
         forceESUpdate();
         assertEquals(Long.valueOf(0), esSetup.countAll());
     }
@@ -62,14 +63,14 @@ public class ElasticSearchProviderTest {
     @Test
     public void testDeleteOne() throws MailboxException, InterruptedException {
         addTwoMessage();
-        searchIndex.delete(mailboxSession, null, MessageRange.one(1));
+        searchIndex.delete(mailboxSession, mailbox, MessageRange.one(1));
         forceESUpdate();
         assertEquals(Long.valueOf(1), esSetup.countAll());
     }
 
     private void addTenMessage() throws InterruptedException, MailboxException {
         for (int i = 0; i < 10; i++) {
-            searchIndex.add(mailboxSession, null, new SimpleMessageMock(i));
+            searchIndex.add(mailboxSession, mailbox, new SimpleMessageMock(i));
         }
         forceESUpdate();
         assertEquals(Long.valueOf(10), esSetup.countAll());
@@ -78,14 +79,14 @@ public class ElasticSearchProviderTest {
     @Test
     public void testDeleteFrom() throws MailboxException, InterruptedException {
         addTenMessage();
-        searchIndex.delete(mailboxSession, null, MessageRange.from(6));
+        searchIndex.delete(mailboxSession, mailbox, MessageRange.from(6));
         assertEquals(Long.valueOf(6), esSetup.countAll());
     }
     
     @Test
     public void testDeleteRange() throws MailboxException, InterruptedException {
         addTenMessage();
-        searchIndex.delete(mailboxSession, null, MessageRange.range(4, 8));
+        searchIndex.delete(mailboxSession, mailbox, MessageRange.range(4, 8));
         assertEquals(Long.valueOf(5), esSetup.countAll());
     }
     

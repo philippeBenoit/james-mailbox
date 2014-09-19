@@ -203,6 +203,7 @@ public void add(final MailboxSession session, Mailbox<Id> mailbox, final Message
                 .field(Field.ID, message.getUid())
                 .field(Field.SIZE, message.getFullContentOctets())
                 .field(Field.FLAGS, message.createFlags().getUserFlags())
+                .field("MAILBOX_ID", mailbox.getMailboxId())
                 .endObject();
 
         // content handler which will index the headers and the body of the message
