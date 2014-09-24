@@ -95,5 +95,8 @@ public class ElasticSearchProviderTest {
      /*   SimpleMessage oldMessage = new SimpleMessageMock(1);
         searchIndex.add(null, null, oldMessage);
         throw new NotImplementedException(); */
+     // TODO: create a test for the update message
     }
+
+    // TODO: create many tests for the search method
 }

@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
@@ -23,6 +24,7 @@ import org.apache.james.mailbox.MailboxSession;
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.model.MessageRange;
 import org.apache.james.mailbox.model.SearchQuery;
+import org.apache.james.mailbox.model.SearchQuery.Criterion;
 import org.apache.james.mailbox.store.mail.MessageMapperFactory;
 import org.apache.james.mailbox.store.mail.model.Mailbox;
 import org.apache.james.mailbox.store.mail.model.Message;
@@ -42,6 +44,8 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.apache.james.mime4j.util.MimeUtil;
+import org.apache.lucene.search.BooleanClause;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.Index;
@@ -186,6 +190,12 @@ public class ElasticsearchMessageSearchIndex<Id> extends ListeningMessageSearchI
 
     public Iterator<Long> search(MailboxSession session, Mailbox<Id> mailbox, SearchQuery searchQuery) throws MailboxException {
         Set<Long> uids = new LinkedHashSet<Long>();
+        QueryBuilder query;
+        List<Criterion> crits = searchQuery.getCriterias();
+        for (int i = 0; i < crits.size(); i++) {
+         //   query.add(crits.get(i));
+         // TODO: build the query with all the criterias
+        }
         // return uids.iterator();
         throw new NotImplementedException();
     }
@@ -423,7 +433,11 @@ public void add(final MailboxSession session, Mailbox<Id> mailbox, final Message
 
     @Override
     public void update(MailboxSession session, Mailbox<Id> mailbox, MessageRange range, Flags flags) throws MailboxException {
-        QueryBuilder query;
+        client.prepareUpdate(INDEX_NAME, TYPE_NAME, range.getUidFrom() + "")
+            .setScript("")
+            .execute()
+            .actionGet();
+        // TODO: we need to update the flags of an range of message
         throw new NotImplementedException();
     }
 
