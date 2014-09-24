@@ -27,14 +27,18 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>apache-james-mailbox-store</artifactId>
-    <name>Apache James :: Mailbox :: Store Framework</name>
+    <artifactId>apache-james-mailbox-elasticsearch</artifactId>
+    <name>Apache James :: Mailbox :: Elasticsearch</name>
     <packaging>bundle</packaging>
 
     <dependencies>
-        <dependency>
+       <dependency>
             <groupId>org.apache.james</groupId>
             <artifactId>apache-james-mailbox-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.james</groupId>
+            <artifactId>apache-james-mailbox-store</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.james</groupId>
@@ -49,21 +53,19 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
-        <dependency>
             <groupId>${javax.mail.groupId}</groupId>
             <artifactId>${javax.mail.artifactId}</artifactId>
         </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+	<dependency>
+  	    <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+  	    <version>${elasticsearch.version}</version>
             <scope>test</scope>
+        </dependency>
+	<dependency>
+  	    <groupId>com.github.tlrx</groupId>
+            <artifactId>elasticsearch-test</artifactId>
+  	    <version>${elasticsearch-test.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -71,18 +73,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.jmock</groupId>
-            <artifactId>jmock</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jmock</groupId>
-            <artifactId>jmock-junit4</artifactId>
+            <groupId>org.apache.james</groupId>
+            <artifactId>apache-james-mailbox-api</artifactId>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.james</groupId>
-            <artifactId>apache-james-mailbox-api</artifactId>
+            <artifactId>apache-james-mailbox-store</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
