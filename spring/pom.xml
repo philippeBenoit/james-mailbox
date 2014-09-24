@@ -60,10 +60,12 @@
             <groupId>org.apache.james</groupId>
             <artifactId>apache-james-mailbox-cassandra</artifactId>
         </dependency>
+        <!-- TODO: enable after fix mailbox-elasticsearch
         <dependency>
             <groupId>org.apache.james</groupId>
             <artifactId>apache-james-mailbox-elasticsearch</artifactId>
         </dependency>
+	-->
         <!-- TODO: enable after fix maibox-hbase -->
         <!--<dependency>-->
         <!--<groupId>org.apache.james</groupId>-->
