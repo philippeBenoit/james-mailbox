@@ -34,16 +34,14 @@ import java.util.Map;
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 
-import org.apache.james.mailbox.model.MailboxACL;
 import org.apache.james.mailbox.model.SearchQuery;
-import org.apache.james.mailbox.model.SimpleMailboxACL;
 import org.apache.james.mailbox.model.SearchQuery.AddressType;
 import org.apache.james.mailbox.model.SearchQuery.DateResolution;
 import org.apache.james.mailbox.model.SearchQuery.Sort.SortClause;
 import org.apache.james.mailbox.store.MessageBuilder;
 import org.apache.james.mailbox.store.SimpleMailboxMembership;
-import org.apache.james.mailbox.store.mail.model.Mailbox;
 import org.apache.james.mailbox.store.mail.model.Message;
+import org.apache.james.mailbox.store.search.SimpleMailboxMock;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,9 +50,9 @@ public class LuceneMessageSearchIndexTest {
 
     private LuceneMessageSearchIndex<Long> index;
 
-    private SimpleMailbox mailbox = new SimpleMailbox(0);
-    private SimpleMailbox mailbox2 = new SimpleMailbox(1);
-    private SimpleMailbox mailbox3 = new SimpleMailbox(2);
+    private SimpleMailboxMock mailbox = new SimpleMailboxMock(0);
+    private SimpleMailboxMock mailbox2 = new SimpleMailboxMock(1);
+    private SimpleMailboxMock mailbox3 = new SimpleMailboxMock(2);
 
 
     private static final String FROM_ADDRESS = "Harry <harry@example.org>";
@@ -702,64 +700,5 @@ public class LuceneMessageSearchIndexTest {
         assertEquals(2L, it4.next().longValue());
         assertEquals(3L, it4.next().longValue());
         assertFalse(it4.hasNext());
-    }
-    
-    private final class SimpleMailbox implements Mailbox<Long> {
-        private long id;
-
-        public SimpleMailbox(long id) {
-            this.id = id;
-        }
-
-        public Long getMailboxId() {
-            return id;
-        }
-
-        public String getNamespace() {
-            throw new UnsupportedOperationException("Not supported");
-        }
-
-        public void setNamespace(String namespace) {
-            throw new UnsupportedOperationException("Not supported");
-        }
-
-        public String getUser() {
-            throw new UnsupportedOperationException("Not supported");
-        }
-
-        public void setUser(String user) {
-            throw new UnsupportedOperationException("Not supported");
-        }
-
-        public String getName() {
-            return Long.toString(id);
-        }
-
-        public void setName(String name) {
-            throw new UnsupportedOperationException("Not supported");
-
-        }
-
-        public long getUidValidity() {
-            return 0;
-        }
-
-        /* (non-Javadoc)
-         * @see org.apache.james.mailbox.store.mail.model.Mailbox#getACL()
-         */
-        @Override
-        public MailboxACL getACL() {
-            return SimpleMailboxACL.OWNER_FULL_ACL;
-        }
-
-        /* (non-Javadoc)
-         * @see org.apache.james.mailbox.store.mail.model.Mailbox#setACL(org.apache.james.mailbox.MailboxACL)
-         */
-        @Override
-        public void setACL(MailboxACL acl) {
-            throw new UnsupportedOperationException("Not supported");
-        }
-
-
     }
 }
