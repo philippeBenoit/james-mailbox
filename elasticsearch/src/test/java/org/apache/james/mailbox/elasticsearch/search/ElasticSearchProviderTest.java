@@ -4,12 +4,12 @@ import static com.github.tlrx.elasticsearch.test.EsSetup.createIndex;
 import static com.github.tlrx.elasticsearch.test.EsSetup.deleteAll;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.mock.MockMailboxSession;
 import org.apache.james.mailbox.model.MessageRange;
 import org.apache.james.mailbox.store.mail.model.impl.SimpleMessage;
-import org.apache.james.mailbox.store.search.ElasticsearchListeningMessageSearchIndex;
-import org.apache.james.mailbox.store.mail.model.impl.SimpleMessage;
+import org.apache.james.mailbox.store.search.SimpleMailboxMock;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.junit.Before;

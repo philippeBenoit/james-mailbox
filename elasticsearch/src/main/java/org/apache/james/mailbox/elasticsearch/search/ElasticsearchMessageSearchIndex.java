@@ -1,4 +1,4 @@
-package org.apache.james.mailbox.store.search;
+package org.apache.james.mailbox.elasticsearch.search;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
@@ -28,6 +28,8 @@ import org.apache.james.mailbox.model.SearchQuery.Criterion;
 import org.apache.james.mailbox.store.mail.MessageMapperFactory;
 import org.apache.james.mailbox.store.mail.model.Mailbox;
 import org.apache.james.mailbox.store.mail.model.Message;
+import org.apache.james.mailbox.store.search.ListeningMessageSearchIndex;
+import org.apache.james.mailbox.store.search.SearchUtil;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.dom.Header;
 import org.apache.james.mime4j.dom.address.Address;
@@ -44,8 +46,7 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.apache.james.mime4j.util.MimeUtil;
-import org.apache.lucene.search.BooleanClause;
-import org.elasticsearch.action.search.SearchRequest;
+import org.apache.lucene.document.DateTools;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.Index;
